@@ -5,5 +5,5 @@ from django.conf.urls import url
 app_name = 'ojoj'
 urlpatterns = [
     path('', views.index, name='index'),
-    url(r'users', views.users),
+    url('users/(?P<user_id>[0-9]+)/$', views.UserView.as_view()),
 ]
