@@ -1,21 +1,21 @@
 from django.test import TestCase
-import base64
-from hashlib import md5, sha1
+from .utils import pwCheck
+from .models import Users
 
-save = 'cFoqYj1KzV7nTlv0fGckWZ9y8XRmYzg0'
-def pwCheck(password, saved):
-    svd = base64.b64decode(saved.encode('ascii'))
-    salt = svd[20:]
+class UserModelTest(TestCase):
+    def setUp(self):
+        self.password = "cFoqYj1KzV7nTlv0fGckWZ9y8XRmYzg0"
+        # self.password = "cFoqYj1KzV7nTlv0fGckWZ9y8XRmYzg0"
+        self.user = Users(password=self.password)
 
-    md5_ins = md5()
-    sha1_ins = sha1()
-
-    md5_ins.update(password.encode('ascii'))
-    md5_out = md5_ins.digest() + salt
-
-    sha1_ins.update(md5_out)
-    sha1_out = sha1_ins.digest() + salt
-    final_out = base64.b64encode(sha1_out).decode('ascii')
-    return final_out
-
-print(pwCheck('a28721054', save))
+    def test_password_check(self):
+        """
+        当输入正确密码时pwCheck返回True
+        否则返回False
+        :return:
+        """
+        true_pwd = "a28721054"
+        false_pwd = "123546"
+        saved_pwd = self.user.password
+        self.assertEqual(pwCheck(true_pwd, saved_pwd), True)
+        self.assertEqual(pwCheck(false_pwd, saved_pwd), False)
