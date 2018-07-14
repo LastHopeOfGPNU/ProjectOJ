@@ -1,0 +1,7 @@
+# 模板目录
+{% load static %} 标签引入静态资源
+用{% static 'ojoj/xxx' %}替代静态资源路径
+<link rel="stylesheet" type="text/css" href="{% static 'ojoj/style.css' %}" />
+
+{% %}标签用于执行循环、判断等Python语句
+{{ 变量名 }}标签用于静态注入数据
