@@ -1,27 +1,37 @@
 from rest_framework import serializers
+from rest_framework.fields import empty
 from .models import Users
-class BaseSerializer:
-    def __init__(self, serializer = None):
-        self.serializer = serializer
+from .meta.msg import MSG_DICT
+class GenericModelSerializer(serializers.ModelSerializer):
+    def __init__(self, instance=None, data=empty, **kwargs):
+        super().__init__(instance, data, **kwargs)
         self.base = {
             'success': '',
             'msg': '',
-            'data': {}
+            'data': '',
         }
 
-    def set_serializer(self, serializer):
-        self.serializer = serializer
+    @property
+    def data(self):
+        if self.instance:
+            return super().data
+        else:
+            self.base['data'] = ""
+            return self.base
 
-    def set_data_content(self, key, value):
-        self.base['data'][key] = value
-
-    def render(self, success, msg):
-        self.base['success'] = success
-        self.base['msg'] = msg
-        self.base['data'] = '' if not self.serializer else self.serializer.data
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data = ""
+        self.base['data'] = data
         return self.base
 
-class UserSerializer(serializers.ModelSerializer):
+    def set_success(self, success):
+        self.base['success'] = success
+
+    def set_msg(self, code):
+        self.base['msg'] = MSG_DICT[code]
+
+class UserSerializer(GenericModelSerializer):
 
     class Meta:
         model = Users
