@@ -4,6 +4,24 @@ from random import random
 
 encoding = 'utf-8'
 
+def get_params_from_post(request, namedict):
+    """
+    传入request和需要获得的POST参数名字典namedict
+    返回dict，错误信息在error域中
+    :param request:
+    :param namedict: key：参数名，value：错误代码
+    :return:
+    """
+    ret = {'error': None}
+    for param in namedict.keys():
+        try:
+            value = request.POST[param]
+            ret[param] = value
+        except KeyError:
+            ret['error'] = namedict[param]
+            break
+    return ret
+
 def hashGen(password, salt):
     """
 

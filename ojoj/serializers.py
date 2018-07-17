@@ -21,7 +21,6 @@ class GenericModelSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data = ""
         self.base['data'] = data
         return self.base
 

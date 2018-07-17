@@ -10,15 +10,14 @@ from ..utils import pwCheck
 from hashlib import md5
 from ..meta.msg import MSG_DICT
 from time import time
+from ..utils import get_params_from_post
 
 # TODO: 写注释，检查参数
 class UserRegisterView(APIView):
     def post(self, request):
-        user_id = request.POST['username']
-        nick = request.POST['nickname']
-        password = request.POST['password']
-        captchacode = request.POST['captchacode']  # 或返回10005
         ip = request.META['REMOTE_ADDR']
+        namedict = {'username': 10000, 'nickname': 10006, 'password': 10001, 'captchacode': 10005}
+        params = get_params_from_post(request, namedict)
 
         # TODO: 从loginlog表中查询验证码是否正确
         # select count(*) from loginlog where ip=xxx and captcha=xxx
@@ -40,32 +39,34 @@ class UserLoginView(generics.GenericAPIView):
     serializer_class = UserSerializer
 
     def post(self, request):
-        # TODO: 需要检查参数
+        # 检查参数
         success = 'false'
-        user_id = request.POST['username']
-        password = request.POST['password']
         msg = 10002
-        # user = None
+        namedict = {'username': 10000, 'password': 10001}
+        params = get_params_from_post(request, namedict)
+        if params['error']:
+            msg = params['error']
         md5_ins = md5()
-        try:
-            user = self.queryset.get(user_id=user_id)
-            if pwCheck(password, user.password):
-                if user.defunct == 'Y':
-                    msg = 10013
-                # 设置用户cookie
-                md5_ins.update(str(time()).encode() + user_id.encode())
-                cookie = md5_ins.hexdigest()
-                ip = request.META['REMOTE_ADDR']
-                # 更新用户状态
-                user.cookie = cookie
-                user.ip = ip
-                user.login_time = timezone.now()
-                user.save()
-                success = 'true'
-            else:
+        if msg == 10002:
+            try:
+                user = self.queryset.get(user_id=params['username'])
+                if pwCheck(params['password'], user.password):
+                    if user.defunct == 'Y':
+                        msg = 10013
+                    # 设置用户cookie
+                    md5_ins.update(str(time()).encode() + params['username'].encode())
+                    cookie = md5_ins.hexdigest()
+                    ip = request.META['REMOTE_ADDR']
+                    # 更新用户状态
+                    user.cookie = cookie
+                    user.ip = ip
+                    user.login_time = timezone.now()
+                    user.save()
+                    success = 'true'
+                else:
+                    msg = 10003
+            except Users.DoesNotExist:
                 msg = 10003
-        except Users.DoesNotExist:
-            msg = 10003
         if msg != 10002:
             user = None
         serializer = self.get_serializer(user)
