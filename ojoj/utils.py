@@ -1,6 +1,8 @@
 import base64
 from hashlib import md5, sha1
-from random import random
+from random import random, randint
+from io import StringIO
+from PIL import Image, ImageFont, ImageDraw, ImageFilter
 
 encoding = 'utf-8'
 
@@ -66,5 +68,45 @@ def pwCheck(password, saved):
     salt = svd[20:]
     hash = hashGen(password, salt)
     return hash == saved
+
+class ValidateCode:
+    """
+    验证码类
+    """
+    def __init__(self):
+        self.__charset = "abcdefghkmnprstuvwxyzABCDEFGHKMNPRSTUVWXYZ23456789"
+        self.__setlen = len(self.__charset) - 1
+        self.__codelen = 4
+        self.__fontsize = 35
+        self.__imgsize = (130, 50)
+        self.__bgcolor = (255, 255, 255)
+        self.__fontcolor = (0, 0, 0)
+        self.__code = ""
+
+    def create_code(self):
+        code = StringIO()
+        for i in range(self.__codelen):
+            offset = randint(0, self.__setlen)
+            code.write(self.__charset[offset])
+        return code.getvalue()
+
+    def gen_img(self):
+        img = Image.new("RGB", self.__imgsize, self.__bgcolor)
+        font = ImageFont.truetype("ojoj/font/elephant.ttf", self.__fontsize)
+        draw = ImageDraw.Draw(img)  # 创建画笔
+        self.__code = self.create_code()
+        font_width, font_height = font.getsize(self.__code)
+        # 放字
+        x = (self.__imgsize[0] - font_width) / self.__codelen
+        y = (self.__imgsize[1] - font_height) / self.__codelen
+        draw.text((x, y), self.__code, font=font, fill=self.__fontcolor)
+        # 扭曲图片
+        img = img.transform((self.__imgsize[0], self.__imgsize[1]), Image.AFFINE, (1, -0.3, 0, -0.1, 1, 0), Image.BILINEAR)
+        img = img.filter(ImageFilter.EDGE_ENHANCE_MORE)
+
+        return img
+
+    def get_code(self):
+        return self.__code.lower()
 
 

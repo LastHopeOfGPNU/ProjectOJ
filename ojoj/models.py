@@ -17,8 +17,8 @@ class Users(models.Model):
     defunct = models.CharField(max_length=1)
     ip = models.CharField(max_length=20)
     accesstime = models.DateTimeField(blank=True, null=True)
-    volume = models.IntegerField()
-    language = models.IntegerField()
+    volume = models.IntegerField(default=1)
+    language = models.IntegerField(default=1)
     password = models.CharField(max_length=32, blank=True, null=True)
     reg_time = models.DateTimeField(blank=True, null=True)
     nick = models.CharField(max_length=100)
@@ -43,3 +43,15 @@ class Users(models.Model):
     class Meta:
         managed = True
         db_table = 'users'
+
+
+class Loginlog(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    captcha = models.TextField()
+    ip = models.CharField(max_length=100)
+    time = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'loginlog'
+
