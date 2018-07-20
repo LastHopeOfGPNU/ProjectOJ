@@ -3,15 +3,27 @@ from django.core.validators import validate_email, ValidationError
 from django.db.utils import OperationalError
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import mixins
 from rest_framework import generics
 from ..models import Users
 from ..models import Loginlog
-from ..serializers import UserSerializer, GenericModelSerializer
+from ..serializers import UserSerializer,TeacherSerializer
 from ..utils import pwCheck, pwGen
 from hashlib import md5
 from time import time
 from ..utils import get_params_from_post
+from ..meta.msg import MSG_DICT
+
+def data_wrapper(data="", msg="", success=""):
+    msg = MSG_DICT.get(msg, "")
+    return {'success': success, 'msg': msg, 'data': data}
+
+class TeacherView(generics.GenericAPIView):
+    queryset = Users.objects.filter(identity=2)
+    serializer_class = TeacherSerializer
+    def get(self, request):
+        serializer = self.get_serializer(self.queryset.all(), many=True)
+        return Response(data_wrapper(serializer.data, success="true"))
+
 
 class UserRegisterView(APIView):
     def post(self, request):
@@ -58,11 +70,9 @@ class UserRegisterView(APIView):
                 msg = 10007
         if msg != 10007:
             success = "false"
-        serializer = GenericModelSerializer()
-        serializer.set_msg(msg)
-        serializer.set_success(success)
-        return Response(serializer.data)
+        return Response(data_wrapper(msg=msg, success=success))
 
+# TODO: 重构？
 class UserLoginView(generics.GenericAPIView):
     queryset = Users.objects.all()
     serializer_class = UserSerializer
@@ -99,6 +109,4 @@ class UserLoginView(generics.GenericAPIView):
         if msg != 10002:
             user = None
         serializer = self.get_serializer(user)
-        serializer.set_success(success)
-        serializer.set_msg(msg)
-        return Response(serializer.data)
+        return Response(data_wrapper(msg=msg, success=success, data=serializer.data))
