@@ -1,5 +1,6 @@
 from django.utils import timezone
 from django.core.validators import validate_email, ValidationError
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.utils import OperationalError
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -21,7 +22,17 @@ class TeacherView(generics.GenericAPIView):
     queryset = Users.objects.all()
     serializer_class = TeacherSerializer
     def get(self, request):
-        serializer = self.get_serializer(self.queryset.filter(identity=2), many=True)
+        page = request.GET.get('page', 1)
+        pagesize = request.GET.get('pagesize', 10)
+        dataset = self.queryset.filter(identity=2)
+        paginaor = Paginator(dataset, pagesize)
+        try:
+            teachers = paginaor.get_page(page)
+        except PageNotAnInteger:
+            teachers = paginaor.get_page(1)
+        except EmptyPage:
+            teachers = paginaor.get_page(paginaor.count)
+        serializer = self.get_serializer(teachers, many=True)
         return Response(data_wrapper(serializer.data, success="true"))
 
     def post(self, request):
