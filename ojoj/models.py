@@ -55,3 +55,14 @@ class Loginlog(models.Model):
         managed = False
         db_table = 'loginlog'
 
+
+class School(models.Model):
+    name = models.CharField(max_length=32, blank=True, null=True)
+    school_id = models.IntegerField(blank=True, null=True)
+    academy_id = models.IntegerField(blank=True, null=True)
+    remark = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'school'
+

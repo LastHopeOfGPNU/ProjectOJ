@@ -13,16 +13,48 @@ from time import time
 from ..utils import get_params_from_post
 from ..meta.msg import MSG_DICT
 
-def data_wrapper(data="", msg="", success=""):
+def data_wrapper(data="", msg=0, success=""):
     msg = MSG_DICT.get(msg, "")
     return {'success': success, 'msg': msg, 'data': data}
 
 class TeacherView(generics.GenericAPIView):
-    queryset = Users.objects.filter(identity=2)
+    queryset = Users.objects.all()
     serializer_class = TeacherSerializer
     def get(self, request):
-        serializer = self.get_serializer(self.queryset.all(), many=True)
+        serializer = self.get_serializer(self.queryset.filter(identity=2), many=True)
         return Response(data_wrapper(serializer.data, success="true"))
+
+    def post(self, request):
+        namedict = {'code': 20001, 'nick': 20001, 'sex': 20001, 'academy': 20001, 'major': 20001,
+                    'contact': 20001, 'email': 20001, 'qq': 20001}
+        params = get_params_from_post(request, namedict)
+        if params['error']:
+            return Response(data_wrapper(msg=params['error'], success="false"))
+
+        # 检查user_id是否存在
+        user = self.queryset.filter(user_id=params['code'])
+        # 存在的话就做他老师
+        if user.count() != 0:
+            user = user[0]
+            user.identity = 2
+            user.save()
+        # 不存在就做他存在
+        else:
+            password = pwGen("123456")
+            ip = request.META['REMOTE_ADDR']
+
+            # create & insert
+            user = Users.objects.create(user_id=params['code'], code=params['code'], nick=params['nick'], sex=params['sex'],
+                                        academy=params['academy'], major=params['major'],
+                                        contact=params['contact'], email=params['email'], qq=params['qq'],
+                                        password=password, ip=ip, identity=2) # identity=2代表老师身份
+        try:
+            user.save()
+        except OperationalError:
+            return Response(data_wrapper(msg=20001, success="false"))
+        else:
+            return Response(data_wrapper(success="true"))
+
 
 
 class UserRegisterView(APIView):
