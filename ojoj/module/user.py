@@ -66,6 +66,36 @@ class TeacherView(generics.GenericAPIView):
         else:
             return Response(data_wrapper(success="true"))
 
+    def delete(self, request):
+        # 通过uid删除老师
+        namedict = {'uid': 20001}
+        params = get_params_from_post(request, namedict)
+        if params['error']:
+            return Response(data_wrapper(msg=params['error'], success="false"))
+        user = self.queryset.filter(identity=2, uid=params['uid'])
+        if user.count != 0:
+            # 只是将身份重置为0（默认普通用户），并非真正删除
+            user = user[0]
+            user.identity = 0
+            user.save()
+        return Response(data_wrapper(success="true"))
+
+    def put(self, request):
+        namedict = {'code': 20001, 'nick': 20001, 'sex': 20001, 'academy': 20001, 'major': 20001,
+                    'contact': 20001, 'email': 20001, 'qq': 20001, 'uid': 20001}
+        params = get_params_from_post(request, namedict)
+        if params['error']:
+            return Response(data_wrapper(msg=params['error'], success="false"))
+        try:
+            user = self.queryset.get(uid=params['uid'])
+        except Users.DoesNotExist:
+            return Response(data_wrapper(msg=20001, success="false"))
+        else:
+            for key, value in params.items():
+                setattr(user, key, value)
+            user.save()
+            serializer = self.get_serializer(user)
+            return Response(data_wrapper(data=serializer.data, success="true"))
 
 
 class UserRegisterView(APIView):
