@@ -11,12 +11,8 @@ from ..serializers import UserSerializer,TeacherSerializer
 from ..utils import pwCheck, pwGen
 from hashlib import md5
 from time import time
-from ..utils import get_params_from_post
-from ..meta.msg import MSG_DICT
+from ..utils import get_params_from_post, data_wrapper
 
-def data_wrapper(data="", msg=0, success=""):
-    msg = MSG_DICT.get(msg, "")
-    return {'success': success, 'msg': msg, 'data': data}
 
 class TeacherView(generics.GenericAPIView):
     queryset = Users.objects.all()

@@ -7,6 +7,50 @@
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
 
+class School(models.Model):
+    name = models.CharField(max_length=32, blank=True, null=True)
+    school_id = models.IntegerField(blank=True, null=True)
+    academy_id = models.IntegerField(blank=True, null=True)
+    remark = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'school'
+
+
+class Courses(models.Model):
+    courses_id = models.AutoField(primary_key=True)
+    courses_name = models.CharField(max_length=100, blank=True, null=True)
+    grade = models.IntegerField()
+    term = models.IntegerField()
+    open = models.IntegerField()
+
+    class Meta:
+        managed = True
+        db_table = 'courses'
+
+
+class Class(models.Model):
+    class_id = models.CharField(primary_key=True, max_length=11)
+    class_name = models.CharField(max_length=100, blank=True, null=True)
+    grade = models.IntegerField(blank=True, null=True)
+    academy_id = models.ForeignKey(School, on_delete=models.CASCADE, db_column='academy_id')
+    studentnum = models.IntegerField(blank=True, null=True)
+    courses = models.ManyToManyField(Courses, through='CoursesClass')
+
+    class Meta:
+        managed = True
+        db_table = 'class'
+
+
+class CoursesClass(models.Model):
+    courses_id = models.ForeignKey(Courses, on_delete=models.CASCADE, db_column='courses_id')
+    class_id = models.ForeignKey(Class, on_delete=models.CASCADE, db_column='class_id')
+
+    class Meta:
+        managed = True
+        db_table = 'courses_class'
+
 
 class Users(models.Model):
     uid = models.AutoField(primary_key=True)
@@ -35,7 +79,7 @@ class Users(models.Model):
     cookie = models.CharField(max_length=32, blank=True, null=True)
     login_time = models.DateTimeField(blank=True, null=True)
     code = models.CharField(max_length=20, blank=True, null=True)
-    class_id = models.CharField(max_length=255, blank=True, null=True)
+    class_id = models.ForeignKey(Class, on_delete=models.SET_NULL, null=True, db_column='class_id')
     grade = models.IntegerField(blank=True, null=True)
     avatarurl = models.CharField(db_column='avatarUrl', max_length=500, blank=True, null=True)  # Field name made lowercase.
     last_submit = models.DateTimeField(blank=True, null=True)
@@ -52,17 +96,6 @@ class Loginlog(models.Model):
     time = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'loginlog'
-
-
-class School(models.Model):
-    name = models.CharField(max_length=32, blank=True, null=True)
-    school_id = models.IntegerField(blank=True, null=True)
-    academy_id = models.IntegerField(blank=True, null=True)
-    remark = models.IntegerField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'school'
 

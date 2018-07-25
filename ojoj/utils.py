@@ -3,8 +3,13 @@ from hashlib import md5, sha1
 from random import random, randint
 from io import StringIO
 from PIL import Image, ImageFont, ImageDraw, ImageFilter
+from .meta.msg import MSG_DICT
 
 encoding = 'utf-8'
+
+def data_wrapper(data="", msg=0, success=""):
+    msg = MSG_DICT.get(msg, "")
+    return {'success': success, 'msg': msg, 'data': data}
 
 def get_params_from_post(request, namedict):
     """
