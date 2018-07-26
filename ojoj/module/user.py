@@ -1,11 +1,12 @@
 from django.utils import timezone
 from django.core.validators import validate_email, ValidationError
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import OperationalError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics
-from ..models import Users
+from ..models import Users, School
 from ..models import Loginlog
 from ..serializers import UserSerializer,TeacherSerializer
 from ..utils import pwCheck, pwGen
@@ -20,7 +21,7 @@ class TeacherView(generics.GenericAPIView):
     def get(self, request):
         page = request.GET.get('page', 1)
         pagesize = request.GET.get('pagesize', 10)
-        dataset = self.queryset.filter(identity=2)
+        dataset = self.queryset.filter(identity=2).order_by('uid')
         paginaor = Paginator(dataset, pagesize)
         try:
             teachers = paginaor.get_page(page)
@@ -40,27 +41,31 @@ class TeacherView(generics.GenericAPIView):
 
         # 检查user_id是否存在
         user = self.queryset.filter(user_id=params['code'])
-        # 存在的话就做他老师
-        if user.count() != 0:
-            user = user[0]
-            user.identity = 2
-            user.save()
-        # 不存在就做他存在
-        else:
-            password = pwGen("123456")
-            ip = request.META['REMOTE_ADDR']
-
-            # create & insert
-            user = Users.objects.create(user_id=params['code'], code=params['code'], nick=params['nick'], sex=params['sex'],
-                                        academy=params['academy'], major=params['major'],
-                                        contact=params['contact'], email=params['email'], qq=params['qq'],
-                                        password=password, ip=ip, identity=2) # identity=2代表老师身份
         try:
-            user.save()
+            academy = School.objects.get(pk=params['academy'])
+            # 存在的话就做他老师
+            if user.count() != 0:
+                user = user[0]
+                user.identity = 2
+                user.academy = academy
+                user.major = params['major']
+                user.save()
+            # 不存在就做他存在
+            else:
+                password = pwGen("123456")
+                ip = request.META['REMOTE_ADDR']
+
+                # create & insert
+                user = Users.objects.create(user_id=params['code'], code=params['code'], nick=params['nick'], sex=params['sex'],
+                                            academy=academy, major=params['major'],
+                                            contact=params['contact'], email=params['email'], qq=params['qq'],
+                                            password=password, ip=ip, identity=2) # identity=2代表老师身份
+                user.save()
         except OperationalError:
             return Response(data_wrapper(msg=20001, success="false"))
-        else:
-            return Response(data_wrapper(success="true"))
+        except ObjectDoesNotExist:
+            return Response(data_wrapper(msg=20001, success="false"))
+        return Response(data_wrapper(success="true", data=self.get_serializer(user).data))
 
     def delete(self, request):
         # 通过uid删除老师
@@ -84,14 +89,18 @@ class TeacherView(generics.GenericAPIView):
             return Response(data_wrapper(msg=params['error'], success="false"))
         try:
             user = self.queryset.get(uid=params['uid'])
-        except Users.DoesNotExist:
-            return Response(data_wrapper(msg=20001, success="false"))
-        else:
             for key, value in params.items():
-                setattr(user, key, value)
+                if key == 'academy':
+                    user.academy = School.objects.get(pk=params['academy'])
+                else:
+                    setattr(user, key, value)
             user.save()
             serializer = self.get_serializer(user)
-            return Response(data_wrapper(data=serializer.data, success="true"))
+        except ObjectDoesNotExist:
+            return Response(data_wrapper(msg=20001, success="false"))
+        except OperationalError:
+            return Response(data_wrapper(success="false", msg=20001))
+        return Response(data_wrapper(data=serializer.data, success="true"))
 
 
 class UserRegisterView(APIView):

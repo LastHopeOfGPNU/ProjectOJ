@@ -97,7 +97,9 @@ class StudentView(generics.GenericAPIView):
                     setattr(student, key, value)
             student.save()
         except ObjectDoesNotExist:
-            return Response(data_wrapper(success="false", msg=params['error']))
+            return Response(data_wrapper(success="false", msg=20001))
+        except OperationalError:
+            return Response(data_wrapper(success="false", msg=20001))
         return Response(data_wrapper(data=self.get_serializer(student).data, success="true"))
 
 
