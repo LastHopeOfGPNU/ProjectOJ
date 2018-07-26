@@ -69,7 +69,7 @@ class TeacherView(generics.GenericAPIView):
         if params['error']:
             return Response(data_wrapper(msg=params['error'], success="false"))
         user = self.queryset.filter(identity=2, uid=params['uid'])
-        if user.count != 0:
+        if user.count() != 0:
             # 只是将身份重置为0（默认普通用户），并非真正删除
             user = user[0]
             user.identity = 0

@@ -72,7 +72,7 @@ class Users(models.Model):
     birthday = models.DateTimeField(blank=True, null=True)
     sex = models.IntegerField(blank=True, null=True)
     qq = models.CharField(max_length=20, blank=True, null=True)
-    academy = models.IntegerField(blank=True, null=True)
+    academy = models.ForeignKey(School, on_delete=models.SET_NULL, null=True, db_column='academy')
     major = models.IntegerField(blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
     contact = models.CharField(max_length=255, blank=True, null=True)

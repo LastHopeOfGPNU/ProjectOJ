@@ -17,10 +17,24 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class StudentSerializer(serializers.ModelSerializer):
+    academy_name = serializers.SerializerMethodField()
+    class_name = serializers.SerializerMethodField()
+
+    def get_academy_name(self, obj):
+        try:
+            return obj.academy.name
+        except:
+            return ""
+
+    def get_class_name(self, obj):
+        try:
+            return obj.class_id.class_name
+        except:
+            return ""
 
     class Meta:
         model = Users
-        fields = ('uid', 'code', 'nick', 'sex', 'submit', 'solved', 'login_time')
+        fields = ('uid', 'code', 'nick', 'sex', 'submit', 'solved', 'login_time', 'academy_name', 'class_name')
 
 
 class ClassSerializer(serializers.ModelSerializer):

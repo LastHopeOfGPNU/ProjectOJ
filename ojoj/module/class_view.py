@@ -38,32 +38,12 @@ class ClassView(generics.GenericAPIView):
             new_cls = Class.objects.create(class_id=params['class_id'], class_name=params['class_name'],
                              grade=params['grade'], academy_id=academy_id, studentnum=0)
             new_cls.save()
-            return Response(data_wrapper(success="true", msg=30002))
+            return Response(data_wrapper(success="true", msg=30002, data=self.get_serializer(new_cls).data))
         except ObjectDoesNotExist:
             return Response(data_wrapper(success="false", msg=20001))
         except OperationalError:
             return Response(data_wrapper(success="false", msg=30001))
 
-    def put(self, request):
-        """
-        为班级添加学生
-        :param request:
-        :return:
-        """
-        namedict = {'class_id': 20001, 'code': 20001}
-        params = get_params_from_post(request, namedict)
-        if params['error']:
-            return Response(data_wrapper(success="false", msg=params['error']))
-        try:
-            student = Users.objects.get(code=params['code'])
-            cls = Class.objects.get(class_id=params['class_id'])
-            student.class_id = cls
-            student.save()
-            return Response(data_wrapper(success="true"))
-        except ObjectDoesNotExist:
-            return Response(data_wrapper(success="false", msg=20001))
-        except OperationalError:
-            return Response(data_wrapper(success="false"))
 
 
 class ClassDetailView(generics.GenericAPIView):
@@ -96,3 +76,25 @@ class ClassDetailView(generics.GenericAPIView):
         }
         return Response(data_wrapper(data, success="true"))
 
+    def put(self, request):
+        """
+        为班级添加学生
+        :param request:
+        :return:
+        """
+        namedict = {'class_id': 20001, 'code': 20001}
+        params = get_params_from_post(request, namedict)
+        if params['error']:
+            return Response(data_wrapper(success="false", msg=params['error']))
+        try:
+            student = Users.objects.get(code=params['code'])
+            cls = Class.objects.get(class_id=params['class_id'])
+            student.class_id = cls
+            student.save()
+            cls.studentnum = cls.users_set.all().count()
+            cls.save()
+            return Response(data_wrapper(success="true", data=self.get_serializer(cls).data))
+        except ObjectDoesNotExist:
+            return Response(data_wrapper(success="false", msg=20001))
+        except OperationalError:
+            return Response(data_wrapper(success="false"))
