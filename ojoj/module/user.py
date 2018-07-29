@@ -188,3 +188,38 @@ class UserLoginView(generics.GenericAPIView):
             user = None
         serializer = self.get_serializer(user)
         return Response(data_wrapper(msg=msg, success=success, data=serializer.data))
+
+
+class UserView(generics.GenericAPIView):
+    queryset = Users.objects.all().order_by('-uid')
+    serializer_class = UserSerializer
+
+    def get(self, request):
+        page = request.GET.get('page', 1)
+        pagesize = request.GET.get('pagesize', 10)
+        dataset = self.get_queryset()
+        paginaor = Paginator(dataset, pagesize)
+        try:
+            users = paginaor.get_page(page)
+        except PageNotAnInteger:
+            users = paginaor.get_page(1)
+        except EmptyPage:
+            users = paginaor.get_page(paginaor.count)
+        serializer = self.get_serializer(users, many=True)
+        return Response(data_wrapper(serializer.data, success="true"))
+
+    def put(self, request):
+        namedict = {'uid': 20001, 'nick': 20001, 'email': 20001, 'sex': 20001, 'qq': 20001, 'signature': 20001}
+        params = get_params_from_post(request, namedict)
+        if params['error']:
+            return Response(data_wrapper(success="false", msg=params['error']))
+        try:
+            user = self.queryset.get(pk=params['uid'])
+            for key, value in params.items():
+                setattr(user, key, value)
+            user.save()
+        except ObjectDoesNotExist:
+            return Response(data_wrapper(success="false", msg=20001))
+        except OperationalError:
+            return Response(data_wrapper(success="false", msg=20001))
+        return Response(data_wrapper(data=self.get_serializer(user).data, success="true"))

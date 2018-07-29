@@ -11,6 +11,7 @@ urlpatterns = [
     path('captcha', views.captcha, name='captcha'),
     url('users/login/$', UserLoginView.as_view()),
     url('users/register/$', UserRegisterView.as_view()),
+    url('users$', UserView.as_view()),
     url('users/teachers', TeacherView.as_view()),
     url('classes$', ClassView.as_view()),
     url('classes/detail', ClassDetailView.as_view()),

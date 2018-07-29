@@ -13,7 +13,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Users
-        fields = ('uid', 'user_id', 'nick', 'identity', 'cookie', 'avatarurl')
+        fields = ('uid', 'user_id', 'nick', 'identity', 'cookie', 'avatarurl', 'reg_time', 'login_time',
+                  'email', 'sex', 'qq', 'signature')
 
 
 class StudentSerializer(serializers.ModelSerializer):
