@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0 user-scalable=no">
+    <meta name="renderer" content="webkit"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>班级管理</title>
+    <link rel="icon" href="../../static/assets/logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="../../static/plugin/bootstrap-3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../static/css/variable.css">
+    <link rel="stylesheet" href="../../static/plugin/font/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../../static/plugin/bootstrap-table.1.11.1/bootstrap-table.min.css">
+    <link rel="stylesheet" href="../../static/plugin/bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="../../static/plugin/pnotify/pnotify.css">
+    <link rel="stylesheet" href="../../static/plugin/pnotify/pnotify.brighttheme.css">
+    <link rel="stylesheet" href="../../static/plugin/pnotify/pnotify.buttons.css">
+    <link rel="stylesheet" href="../../static/css/common.css">
+    <!--[if IE 7]>
+    <link rel="stylesheet" href="../../static/plugin/font/css/font-awesome-ie7.min.css">
+    <![endif]-->
+    <!--[if lt IE 9]>
+    <script src="../../static/compatibility/html5shiv.js"></script>
+    <script src="../../static/compatibility/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+    <div id="main">
+        <div id="search-part" class="row" style="display: none">
+            <form id="search-form" name="search-form">
+                <div>
+                    <div class="search-group col-sm-4 col-md-3 col-lg-3">
+                        <label class="search-label">班级名</label>
+                        <input id="searchClassName" class="search-control" type="text"/>
+                    </div>
+                    <div class="search-group col-sm-4 col-md-3 col-lg-3">
+                        <label class="search-label">学院</label>
+                        <select class="search-control" name="searchAcademic" id="searchAcademic">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                    <div class="search-group col-sm-4 col-md-3 col-lg-3">
+                        <label class="search-label">年级</label>
+                        <select class="search-control" name="searchGrade" id="searchGrade">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div id="data-part" class="clearfix">
+            <div id="toolbar" class="btn-toolbar">
+                <button type="button" class="btn btn-primary" onclick="addClass()">添加班级 <i class="icon-plus"></i></button>、
+                <button class="btn btn-danger" onclick="deleteClass()">删除班级 <i class="icon-remove"></i></button>
+                <button type="button" class="btn btn-primary" onclick="openClassInfo()">查看 <i class="icon-edit"></i></button>
+                <button type="button" class="btn btn-success">添加学生 <i class="icon-plus"></i></button>
+                <button id="search" type="button" class="btn btn-success btn-sm" style="display: none"><i class="icon-search"></i> <span>搜索</span></button>
+                <button id="toggle-search" type="button" class="btn"><i class="icon-angle-down"></i> <span>展开搜索</span></button>
+            </div>
+            <!--新增班级-->
+            <div class="modal fade" id="addClass" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">新增班级</h4>
+                        </div>
+                        <div class="modal-body">
+                            <form role="form" id="addForm" name="addForm">
+                                <div class="form-group form-group-sm">
+                                    <label for="addClassIName">班级名称</label> <span style="color:#FF3333;font-size:18px">*</span>
+                                    <input type="text" class="form-control" name="addClassIName" placeholder="请填写班级名称" id="addClassIName" required/>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label for="addClassId">班级编号</label><span style="color:#FF3333;font-size:18px">*</span>
+                                    <input type="text" class="form-control" name="addClassId" placeholder="请填写班级编号（数字）" id="addClassId" required/>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label for="addGrade">班级年级</label> <span style="color:#FF3333;font-size:18px">*</span>
+                                    <input type="text" class="form-control" name="addGrade" placeholder="请选择年级" id="addGrade" required/>
+                                </div>
+                                <div class="form-group form-group-sm">
+                                    <label for="addAcademic">学院</label> <span style="color:#FF3333;font-size:18px">*</span>
+                                    <input type="text" class="form-control" name="addAcademic" placeholder="请选择学院" id="addAcademic" required/>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <!--底部操作-->
+                            <button type="button" class="btn btn-default" data-dismiss="modal" onclick="clearForm()">关闭</button>
+                            <button type="button" class="btn btn-primary" onclick="addTeacher()">确认添加</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--查看并修改班级-->
+            <div class="modal fade bs-example-modal-lg" id="classInfo" role="dialog">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">班级信息</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="someRight" style="width: 200px;display: inline-block">
+                                <p>班级信息</p>
+                                <form role="form" id="infoForm" name="infoForm">
+                                    <div class="form-group form-group-sm">
+                                        <label for="classIName">班级名称</label> <span style="color:#FF3333;font-size:18px">*</span>
+                                        <input type="text" class="form-control" name="classIName" placeholder="请填写班级名称" id="classIName" required/>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label for="classId">班级编号</label><span style="color:#FF3333;font-size:18px">*</span>
+                                        <input type="text" class="form-control" name="classId" placeholder="请填写班级编号（数字）" id="classId" required/>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label for="grade">班级年级</label> <span style="color:#FF3333;font-size:18px">*</span>
+                                        <input type="text" class="form-control" name="grade" placeholder="请选择年级" id="grade" required/>
+                                    </div>
+                                    <div class="form-group form-group-sm">
+                                        <label for="academic">学院</label> <span style="color:#FF3333;font-size:18px">*</span>
+                                        <input type="text" class="form-control" name="academic" placeholder="请选择学院" id="academic" required/>
+                                    </div>
+                                </form>
+                                <button class="btn btn-primary">保存修改信息</button>
+                                <button class="btn btn-success">添加单个学生</button>
+                                <button class="btn btn-warning">批量添加学生</button>
+                            </div>
+                            <div class="someLeft" style="width: 500px;display: inline-block">
+                                <table id="table2" data-classes="table table-hover table-responsive table-sm">
+                                    <thead>
+                                    <tr>
+                                        <th data-checkbox="true" data-field="state"></th>
+                                        <th data-title="学号" data-field="user_id" data-align="center"></th>
+                                        <th data-title="姓名" data-field="nick" data-align="center"></th>
+                                        <th data-title="联系方式" data-field="contact" data-align="center"></th>
+                                        <th data-title="学院" data-field="academy" data-align="center"></th>
+                                        <th data-title="班级" data-field="class_name" data-align="center"></th>
+                                        <th data-title="最近登录" data-field="login_time" data-align="center"></th>
+                                    </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <!--底部操作-->
+                            <button type="button" class="btn btn-default" data-dismiss="modal" onclick="">关闭</button>
+                            <button type="button" class="btn btn-primary" onclick="">确认修改</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <table id="table" data-classes="table table-hover table-responsive table-sm">
+                <thead>
+                <tr>
+                    <th data-checkbox="true" data-field="state"></th>
+                    <th data-title="班级编号" data-field="class_id" data-align="center"></th>
+                    <th data-title="年级" data-field="grade" data-align="center"></th>
+                    <th data-title="班名" data-field="class_name" data-align="center"></th>
+                    <th data-title="学生人数" data-field="student_count" data-align="center"></th>
+                    <th data-title="课程" data-field="courses_count" data-align="center"></th>
+                    <!--<th data-title="操作" data-field="manipulate" data-align="center"></th>-->
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+<script src="../../static/plugin/jquery-1.10.2.min.js"></script>
+<script src="../../static/plugin/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+<script src="../../static/plugin/bootstrap-table.1.11.1/bootstrap-table.min.js"></script>
+<script src="../../static/plugin/bootstrap-table.1.11.1/locale/bootstrap-table-zh-CN.min.js"></script>
+<script src="../../static/plugin/bootstrap-datetimepicker/js/moment.js"></script>
+<script src="../../static/plugin/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js"></script>
+<script src="../../static/plugin/pnotify/pnotify.js"></script>
+<script src="../../static/plugin/pnotify/pnotify.buttons.js"></script>
+<script src="../../static/plugin/layer/layer.js"></script>
+<!--<script src="../../static/js/system/encrypt.js" type="text/javascript"></script>-->
+<!--<script src="../../encrypt/javascript" type="text/javascript"></script>-->
+    <script src="../../static/js/common.js"></script>
+<script src="../../static/js/class/index.js"></script>
+</body>
+</html>

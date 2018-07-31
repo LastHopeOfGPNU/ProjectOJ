@@ -13,6 +13,7 @@ from ..utils import pwCheck, pwGen
 from hashlib import md5
 from time import time
 from ..utils import get_params_from_post, data_wrapper
+from ..decorators import login_required, identity_required, ID_ADMIN
 
 
 class TeacherView(generics.GenericAPIView):
@@ -194,6 +195,8 @@ class UserView(generics.GenericAPIView):
     queryset = Users.objects.all().order_by('-uid')
     serializer_class = UserSerializer
 
+    @login_required
+    @identity_required(ID_ADMIN)
     def get(self, request):
         page = request.GET.get('page', 1)
         pagesize = request.GET.get('pagesize', 10)
@@ -208,6 +211,8 @@ class UserView(generics.GenericAPIView):
         serializer = self.get_serializer(users, many=True)
         return Response(data_wrapper(serializer.data, success="true"))
 
+    @login_required
+    @identity_required(ID_ADMIN)
     def put(self, request):
         namedict = {'uid': 20001, 'nick': 20001, 'email': 20001, 'sex': 20001, 'qq': 20001, 'signature': 20001}
         params = get_params_from_post(request, namedict)

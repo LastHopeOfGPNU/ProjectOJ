@@ -1,11 +1,11 @@
 from django.http import HttpResponse
 from .utils import ValidateCode
 from .models import Loginlog
-import datetime
 from django.utils import timezone
+from django.shortcuts import render
 
 def index(request):
-    return HttpResponse("Hi, index.")
+    return render(request, 'ojoj/index.html')
 
 def captcha(request):
     vc = ValidateCode()

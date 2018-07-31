@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0 user-scalable=no">
+		<meta name="renderer" content="webkit"/>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<title>教师用户列表</title>
+		<!--<link rel="icon" href="../../static/assets/logo.png" type="image/x-icon">-->
+		<link rel="stylesheet" href="../../static/plugin/bootstrap-3.3.7/css/bootstrap.min.css">
+		<link rel="stylesheet" href="../../static/css/variable.css">
+		<link rel="stylesheet" href="../../static/plugin/font/css/font-awesome.min.css">
+		<link rel="stylesheet" href="../../static/plugin/bootstrap-table.1.11.1/bootstrap-table.min.css">
+		<link rel="stylesheet" href="../../static/plugin/bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css">
+		<link rel="stylesheet" href="../../static/plugin/pnotify/pnotify.css">
+		<link rel="stylesheet" href="../../static/plugin/pnotify/pnotify.brighttheme.css">
+		<link rel="stylesheet" href="../../static/plugin/pnotify/pnotify.buttons.css">
+		<link rel="stylesheet" href="../..//static/plugin/bootstrapValidator/css/bootstrapValidator.min.css">
+		<link rel="stylesheet" href="../../static/css/common.css">
+		<!--[if IE 7]>
+		<link rel="stylesheet" href="../../static/plugin/font/css/font-awesome-ie7.min.css">
+		<![endif]-->
+		<!--[if lt IE 9]>
+		<script src="../../static/compatibility/html5shiv.js"></script>
+		<script src="../../static/compatibility/respond.min.js"></script>
+		<![endif]-->
+	</head>
+	<body>
+		<div id="main">
+			<div id="search-part" class="row" style="display: none">
+				<form id="search-form" name="search-form">
+					<div>
+						<div class="search-group col-sm-4 col-md-3 col-lg-3">
+							<label class="search-label">教师工号</label>
+							<input id="searchCode" class="search-control" type="text"/>
+						</div>
+						<div class="search-group col-sm-4 col-md-3 col-lg-3">
+							<label class="search-label">姓名</label>
+							<input id="searchNick" class="search-control" type="text"/>
+						</div>
+						<div class="search-group col-sm-4 col-md-3 col-lg-3">
+							<label class="search-label">联系方式</label>
+							<input id="searchContact" class="search-control" type="number"/>
+						</div>
+
+						<div class="search-group col-sm-4 col-md-3 col-lg-3">
+							<label class="search-label">学院</label>
+							<select class="search-control" name="searchAcademic" id="searchAcademic">
+								<option value=""></option>
+							</select>
+						</div>
+						<div class="search-group col-sm-4 col-md-3 col-lg-3">
+							<label class="search-label">系</label>
+							<select class="search-control" name="searchMajor" id="searchMajor">
+								<option value=""></option>
+							</select>
+						</div>
+					</div>
+				</form>
+			</div>
+			<div id="data-part" class="clearfix">
+				<div id="toolbar" class="btn-toolbar">
+					<!--<button type="button" th:each="button:${buttons}" th:onClick="${button['jsContent']}" th:class="${button['className']}">
+						<i th:class="${button['icon']}"></i> <span th:text="${button['title']}"></span>
+					</button>-->
+					<button class="btn btn-success" data-toggle="modal" data-target="#addTeacher">新增教师 <i class="icon-plus"></i></button>
+					<button class="btn btn-success" data-toggle="modal" data-target="#batchTeacher">批量新增教师 <i class="icon-plus"></i></button>
+					<button class="btn btn-primary" onclick="showTeacherInfo()">修改教师信息 <i class="icon-edit"></i></button>
+					<button class="btn btn-danger" onclick="delectTeacher()">删除教师 <i class="icon-remove"></i></button>
+					<button id="search" type="button" class="btn btn-success btn-sm" style="display: none"><i class="icon-search"></i> <span>搜索</span></button>
+					<button id="toggle-search" type="button" class="btn"><i class="icon-angle-down"></i> <span>展开搜索</span></button>
+				</div>
+				<!--新增教师模态框-->
+				<div class="modal fade" id="addTeacher" role="dialog">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+								<h4 class="modal-title">新增教师</h4>
+							</div>
+							<div class="modal-body">
+								<form role="form" id="addForm" name="addForm">
+									<div class="form-group form-group-sm">
+										<label for="addCode">教工号</label> <span style="color:#FF3333;font-size:18px">*</span>
+										<input type="text" class="form-control" name="addCode" placeholder="请输入教工号" id="addCode" required/>
+									</div>
+									<div class="form-group form-group-sm">
+										<label for="addNick">姓名</label><span style="color:#FF3333;font-size:18px">*</span>
+										<input type="text" class="form-control" name="addNick" placeholder="请输入姓名" id="addNick" required/>
+									</div>
+									<div class="form-group form-group-sm">
+										<label for="addContact">联系方式</label> <span style="color:#FF3333;font-size:18px">*</span>
+										<input type="text" class="form-control" name="addContact" placeholder="请输入联系方式" id="addContact" required/>
+									</div>
+									<div class="form-group form-group-sm">
+										<label for="addAcademic">学院</label> <span style="color:#FF3333;font-size:18px">*</span>
+										<select class="form-control" name="addAcademic" id="addAcademic" required>
+											<option></option>
+										</select>
+									</div>
+									<div class="form-group form-group-sm">
+										<label for="addMajor">系</label> <span style="color:#FF3333;font-size:18px">*</span>
+										<select class="form-control" name="addMajor" id="addMajor" required>
+											<option></option>
+										</select>
+									</div>
+									<!--课程数新建时默认为0-->
+									<!--<div class="form-group form-group-sm">
+										<label for="isRecommend">课程</label>
+									</div>-->
+								</form>
+							</div>
+							<div class="modal-footer">
+								<!--底部操作-->
+								<button type="button" class="btn btn-default" data-dismiss="modal" onclick="clearForm()">关闭</button>
+								<button type="button" class="btn btn-primary" onclick="addTeacher()">确认添加</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!--批量导入教师模态框-->
+				<div class="modal fade" id="batchTeacher" role="dialog">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+								<h4 class="modal-title">批量新增教师</h4>
+							</div>
+							<div class="modal-body">
+								<div class="form-group form-group-sm">
+									<label for="excelFile">请导入Excel文件</label> <span style="color:#FF3333;font-size:18px">*</span>
+									<input type="file" name="excelFile" style="display: none" id="excelFile">
+									<div class="input-group">
+										<input type="text" class="form-control" id="fileInput" style="background-color:#fff" placeholder="未选择文件" readonly>
+										<span class="input-group-addon choose" onclick="$('#excelFile').click()"><i class="icon-picture"></i></span>
+									</div>
+									<div class="file-content col-sm-12">
+										<div class="file-list"></div>
+										<div class="progress-container" style="padding: 5px 10px;background-color: #f0f0f0;display: none;">
+											<div class="progress progress-striped" style="margin: 0;height: 10px;">
+												<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<!--底部操作-->
+								<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+								<button type="button" class="btn btn-primary">确认导入</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!--修改教师模态框-->
+				<div class="modal fade" id="changeTeacher" role="dialog">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+								<h4 class="modal-title">修改教师信息</h4>
+							</div>
+							<div class="modal-body">
+								<form role="form" id="changeForm" name="changeForm">
+									<div class="form-group form-group-sm">
+										<label for="changeCode">教工号</label> <span style="color:#FF3333;font-size:18px">*</span>
+										<input type="text" class="form-control" name="changeCode" placeholder="请输入教工号" id="changeCode" required/>
+									</div>
+									<div class="form-group form-group-sm">
+										<label for="changeNick">姓名</label><span style="color:#FF3333;font-size:18px">*</span>
+										<input type="text" class="form-control" name="changeNick" placeholder="请输入姓名" id="changeNick" required/>
+									</div>
+									<div class="form-group form-group-sm">
+										<label for="changeContact">联系方式</label> <span style="color:#FF3333;font-size:18px">*</span>
+										<input type="text" class="form-control" name="changeContact" placeholder="请输入联系方式" id="changeContact" required/>
+									</div>
+									<div class="form-group form-group-sm">
+										<label for="changeAcademic">学院</label> <span style="color:#FF3333;font-size:18px">*</span>
+										<select class="form-control" name="addAcademic" id="changeAcademic" required>
+											<option></option>
+										</select>
+									</div>
+									<div class="form-group form-group-sm">
+										<label for="changeMajor">系</label> <span style="color:#FF3333;font-size:18px">*</span>
+										<select class="form-control" name="addMajor" id="changeMajor" required>
+											<option></option>
+										</select>
+									</div>
+									<!--课程数新建时默认为0-->
+									<!--<div class="form-group form-group-sm">
+										<label for="isRecommend">课程</label>
+									</div>-->
+								</form>
+							</div>
+							<div class="modal-footer">
+								<!--底部操作-->
+								<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+								<button type="button" class="btn btn-primary" onclick="changeTeacherInfo()">确认修改</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<table id="table" data-classes="table table-hover table-responsive table-sm">
+					<thead>
+					<tr>
+						<th data-checkbox="true" data-field="state"></th>
+						<th data-title="教工号" data-field="code" data-align="center"></th>
+						<th data-title="姓名" data-field="nick" data-align="center"></th>
+						<th data-title="联系方式" data-field="contact" data-align="center"></th>
+						<th data-title="学院" data-field="academic" data-align="center"></th>
+						<th data-title="系" data-field="major" data-align="center"></th>
+						<th data-title="课程" data-field="classnum" data-align="center"></th>
+					</tr>
+					</thead>
+				</table>
+			</div>
+		</div>
+		<script src="../../static/plugin/jquery-1.10.2.min.js"></script>
+		<script src="../../static/plugin/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+		<script src="../../static/plugin/bootstrap-table.1.11.1/bootstrap-table.min.js"></script>
+		<script src="../../static/plugin/bootstrap-table.1.11.1/locale/bootstrap-table-zh-CN.min.js"></script>
+		<script src="../../static/plugin/bootstrapValidator/js/bootstrapValidator.min.js"></script>
+		<script src="../../static/plugin/bootstrapValidator/js/language/zh_CN.js"></script>
+		<!--<script src="../../static/plugin/bootstrap-datetimepicker/js/moment.js"></script>
+		<script src="../../static/plugin/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js"></script>-->
+		<script src="../../static/plugin/pnotify/pnotify.js"></script>
+		<script src="../../static/plugin/pnotify/pnotify.buttons.js"></script>
+		<script src="../../static/plugin/layer/layer.js"></script>
+		<script src="../../static/js/common.js"></script>
+		<script src="../../static/js/teacher/index.js"></script>
+	</body>
+</html>

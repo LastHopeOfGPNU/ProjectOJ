@@ -1,0 +1,170 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+	<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0 user-scalable=no">
+    <meta name="renderer" content="webkit"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>广师大OJ管理系统</title>
+    <link rel="icon" href="{% static 'ojoj/assets/favicon.png' %}" type="image/x-icon">
+    <link rel="stylesheet" href="{% static 'ojoj//plugin/bootstrap-3.3.7/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'ojoj/plugin/wave-0.7.5/waves.min.css' %}">
+    <link rel="stylesheet" href="{% static 'ojoj/css/variable.css' %}">
+    <link rel="stylesheet" href="{% static 'ojoj/css/admin.css' %}">
+    <link rel="stylesheet" href="{% static 'ojoj/plugin/font/css/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'ojoj/plugin/pnotify/pnotify.css' %}">
+    <link rel="stylesheet" href="{% static 'ojoj/plugin/pnotify/pnotify.brighttheme.css' %}">
+    <link rel="stylesheet" href="{% static 'ojoj/plugin/pnotify/pnotify.buttons.css' %}">
+    <link rel="stylesheet" href="{% static 'ojoj/plugin/bootstrapValidator/css/bootstrapValidator.min.css' %}">
+    <!--[if IE 7]>
+    <link rel="stylesheet" href="{% static 'ojoj/plugin/font/css/font-awesome-ie7.min.css' %}">
+    <![endif]-->
+    <!--[if lt IE 9]>
+    <script src="{% static 'ojoj/compatibility/html5shiv.js' %}"></script>
+    <script src="{% static 'ojoj/compatibility/respond.min.js' %}"></script>
+    <![endif]-->
+</head>
+	<body>
+    <div id="torch-app">
+        <header id="header" class="bg-color">
+            <ul id="menu">
+                <li id="guide" class="line-trigger">
+                    <div class="line-wrap">
+                        <div class="line top"></div>
+                        <div class="line center"></div>
+                        <div class="line bottom"></div>
+                    </div>
+                </li>
+                <li id="logo" class="hidden-xs">
+                    <span id="system_title" class="logo-fontSize">广师大OJ</span>
+                </li>
+                <!--<li class="pull-right">
+                    <a class="waves-effect waves-light" style="color: #fff;" onclick="fullPage(event)" href="javascript:void(0);"><i class="icon-fullscreen"> 全屏</i></a>
+                </li>-->
+            </ul>
+        </header>
+        <div id="modify-password-modal" class="modal fade" tabindex="-1" role="dialog">
+
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">修改密码</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form class="form-horizontal" role="form" id="modifyPasswordForm" onkeydown="">
+                            <div class="form-group form-group-sm">
+                                <label for="old-password" class="col-sm-2 control-label">旧密码</label>
+                                <div class="col-sm-10">
+                                    <input type="password" class="form-control" id="old-password" name="oldPassword" placeholder="请输入旧密码">
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label for="new-password" class="col-sm-2 control-label">新密码</label>
+                                <div class="col-sm-10">
+                                    <input type="password" class="form-control" id="new-password" name="newPassword" placeholder="请输入新密码">
+                                </div>
+                            </div>
+                            <div class="form-group form-group-sm">
+                                <label for="confirm-password" class="col-sm-2 control-label">确认密码</label>
+                                <div class="col-sm-10">
+                                    <input type="password" class="form-control" id="confirm-password" name="confirmPassword" placeholder="请确认新密码">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" onclick="modifyPassword()">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <section id="main">
+            <!--左边导航栏-->
+            <aside id="sidebar" style="overflow: visible">
+                <div class="sidebar-background"></div>
+                <div class="main-menu">
+                    <div class="s-profile">
+                        <a class="waves-effect waves-light" href="javascript:void(0);">
+                            <div class="sp-pic">
+                                <img src="{% static 'ojoj/assets/user.jpg' %}">
+                            </div>
+                            <div class="sp-info">
+                                <span>用户名</span>，您好！
+                                <i class="icon-caret-down"></i>
+                            </div>
+                        </a>
+                        <ul class="menu-list s-profile-list" style="display: none">
+                            <li>
+                                <a class="waves-effect" href="javascript:void(0);" onclick="passwordModal(event)"><i class="icon-lock"></i> 修改密码</a>
+                            </li>
+                            <li>
+                                <a class="waves-effect" href="/login"><i class="icon-circle-arrow-right"></i> 退出登录</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <ul class="menu-list sm-fontSize">
+                        <li><a href="#" class="waves-effect"><i class="icon-home"></i>首页</a></li>
+                        <li><a href="javascript:Tab.addTab('教师管理', 'tab_iframe_2','teacher/index.html')" class="waves-effect"><i class="icon-th-list"></i>教师管理</a></li>
+                        <li><a href="javascript:Tab.addTab('班级管理', 'tab_iframe_3','class/index.html')" class="waves-effect"><i class="icon-th-list"></i>班级管理</a></li>
+                        <li><a href="javascript:Tab.addTab('学生管理', 'tab_iframe_4','student/index.html')" class="waves-effect"><i class="icon-th-list"></i>学生管理</a></li>
+                        <li><a href="javascript:Tab.addTab('用户管理', 'tab_iframe_5','user/index.html')" class="waves-effect"><i class="icon-th-list"></i>用户管理</a></li>
+                        <li><a href="javascript:Tab.addTab('题库管理', 'tab_iframe_6','problem/index.html')" class="waves-effect"><i class="icon-th-list"></i>题库管理</a></li>
+                        <!--<li><a href="javascript:Tab.addTab('考试管理', 'tab_iframe_7','power/index.html')" class="waves-effect"><i class="icon-th-list"></i>考试管理</a></li>-->
+                        <li><a href="javascript:Tab.addTab('权限管理', 'tab_iframe_7','power/index.html')" class="waves-effect"><i class="icon-th-list"></i>权限管理</a></li>
+                        <li><a href="javascript:Tab.addTab('竞赛管理', 'tab_iframe_8','contest/index.html')" class="waves-effect"><i class="icon-th-list"></i>竞赛管理</a></li>
+                        <li><a href="javascript:Tab.addTab('新闻（通知）管理', 'tab_iframe_9','news/index.html')" class="waves-effect"><i class="icon-th-list"></i>新闻（通知）管理</a></li>
+                        <li><a href="javascript:Tab.addTab('反馈管理', 'tab_iframe_10','feedback/index.html')" class="waves-effect"><i class="icon-th-list"></i>反馈管理</a></li>
+                        <li><a href="javascript:Tab.addTab('维护管理', 'tab_iframe_11','maintain/index.html')" class="waves-effect"><i class="icon-th-list"></i>维护管理</a></li>
+                        <li><a href="javascript:Tab.addTab('文章管理', 'tab_iframe_12','article/index.html')" class="waves-effect"><i class="icon-th-list"></i>文章管理</a></li>
+                        <li><div class="copyright">Copyright © 广师大</div></li>
+                    </ul>
+                </div>
+            </aside>
+            <section id="content">
+                <div class="content_tab bg-color-tab">
+                    <div class="tab_left">
+                        <a class="waves-effect waves-light" href="javascript:void(0);"><i class="icon-chevron-left"></i></a>
+                    </div>
+                    <div class="tab_right">
+                        <a class="waves-effect waves-light" href="javascript:void(0);"><i class="icon-chevron-right"></i></a>
+                    </div>
+                    <ul id="tabs" class="tabs md-fontSize">
+                        <li id="tab_home" data-index="home" data-closeable="false" class="sm-fontSize active">
+                            <a class="waves-effect waves-light" href="javascript:;">首页</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="content_main">
+                    <div id="iframe_home" class="iframe active">
+                        <p></p><h4>广师大OJ平台</h4><p></p>
+                        <p><b>系统简介</b>：</p><br>
+                        <p></p><h4>系统功能概述：</h4><p></p>
+                        <p><b>表单管理</b>：表单设计</p>
+                        <p><b>用户管理</b>：用户管理、角色管理、权限管理。</p><br>
+                        <p></p><h4>关于软件：</h4><p></p>
+                        <p><b>技术支持</b>：</p>
+                        <p><b>系统要求</b>：现代主流浏览器、ie8+，推荐使用谷歌浏览器、火狐浏览器。若使用的是国产浏览器，请使用极速模式。</a></p>
+                    </div>
+                </div>
+            </section>
+        </section>
+        <footer></footer>
+    </div>
+    <script src="{% static 'ojoj/plugin/jquery-1.10.2.min.js' %}"></script>
+    <script src="{% static 'ojoj/plugin/bootstrap-3.3.7/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'ojoj/plugin/jquery.slimscroll.min.js' %}"></script>
+    <script src="{% static 'ojoj/plugin/wave-0.7.5/waves.min.js' %}"></script>
+    <script src="{% static 'ojoj/plugin/BootstrapMenu.min.js' %}"></script>
+    <script src="{% static 'ojoj/plugin/device.min.js' %}"></script>
+    <script src="{% static 'ojoj/js/admin.js' %}"></script>
+    <script src="{% static 'ojoj/plugin/bootstrapValidator/js/bootstrapValidator.min.js' %}"></script>
+    <script src="{% static 'ojoj/plugin/bootstrapValidator/js/language/zh_CN.js' %}"></script>
+    <!--<script src="../static/plugin/fullPage/jquery.fullPage.min.js"></script>-->
+    <!--<script src="../static/plugin/fullPage/jquery.jdirk.min.js"></script>-->
+    <script src="{% static 'ojoj/plugin/pnotify/pnotify.js' %}"></script>
+    <script src="{% static 'ojoj/plugin/pnotify/pnotify.buttons.js' %}"></script>
+	</body>
+</html>
