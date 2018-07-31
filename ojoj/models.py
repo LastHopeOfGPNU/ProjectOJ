@@ -7,7 +7,18 @@
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
 
+
+class CoursesTeacher(models.Model):
+    courses_id = models.IntegerField()
+    teacher_id = models.IntegerField()
+
+    class Meta:
+        managed = True
+        db_table = 'courses_teacher'
+
+
 class School(models.Model):
+    id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=32, blank=True, null=True)
     school_id = models.IntegerField(blank=True, null=True)
     academy_id = models.IntegerField(blank=True, null=True)
