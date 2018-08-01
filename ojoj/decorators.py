@@ -33,3 +33,4 @@ def identity_required(identity):
                 return func(cls, request)
         return wrapper
     return decorator
+
