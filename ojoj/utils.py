@@ -3,9 +3,28 @@ from hashlib import md5, sha1
 from random import random, randint
 from io import StringIO
 from PIL import Image, ImageFont, ImageDraw, ImageFilter
+from django.core.paginator import PageNotAnInteger, EmptyPage, Paginator
 from .meta.msg import MSG_DICT
 
 encoding = 'utf-8'
+
+
+def get_pagination_data(request, get_serializer, queryset):
+    page = request.GET.get('page', 1)
+    pagesize = request.GET.get('pagesize', 10)
+    paginaor = Paginator(queryset, pagesize)
+    try:
+        users = paginaor.get_page(page)
+    except PageNotAnInteger:
+        users = paginaor.get_page(1)
+    except EmptyPage:
+        users = paginaor.get_page(paginaor.count)
+    serializer = get_serializer(users, many=True)
+    return {
+        "data": serializer.data,
+        "total": queryset.count()
+    }
+
 
 def data_wrapper(data="", msg=0, success=""):
     msg = MSG_DICT.get(msg, "")

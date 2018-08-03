@@ -6,23 +6,11 @@ from rest_framework.response import Response
 from ..utils import data_wrapper, pwGen, get_params_from_post
 from ..serializers import StudentSerializer
 from ..models import Users, School, Class
+from .core import BaseListView
 
-class StudentView(generics.GenericAPIView):
+class StudentView(BaseListView):
     queryset = Users.objects.filter(identity=1)
     serializer_class = StudentSerializer
-    def get(self, request):
-        page = request.GET.get('page', 1)
-        pagesize = request.GET.get('pagesize', 10)
-        dataset = self.get_queryset()
-        paginaor = Paginator(dataset, pagesize)
-        try:
-            students = paginaor.get_page(page)
-        except PageNotAnInteger:
-            students = paginaor.get_page(1)
-        except EmptyPage:
-            students = paginaor.get_page(paginaor.count)
-        serializer = self.get_serializer(students, many=True)
-        return Response(data_wrapper(serializer.data, success="true"))
 
     def post(self, request):
         namedict = {'code': 20001, 'nick': 20001, 'sex': 20001, 'academy': 20001, 'grade': 20001,

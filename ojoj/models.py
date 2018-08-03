@@ -110,3 +110,100 @@ class Loginlog(models.Model):
         managed = True
         db_table = 'loginlog'
 
+
+class Tags(models.Model):
+    tagid = models.AutoField(primary_key=True)
+    tagname = models.CharField(max_length=100)
+    pid = models.IntegerField()
+
+    class Meta:
+        managed = True
+        db_table = 'tags'
+
+
+class Problem(models.Model):
+    problem_id = models.AutoField(primary_key=True)
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    input = models.TextField(blank=True, null=True)
+    output = models.TextField(blank=True, null=True)
+    sample_input = models.TextField(blank=True, null=True)
+    sample_output = models.TextField(blank=True, null=True)
+    spj = models.CharField(max_length=1)
+    hint = models.TextField(blank=True, null=True)
+    source = models.CharField(max_length=100, blank=True, null=True)
+    in_date = models.DateTimeField(blank=True, null=True)
+    time_limit = models.IntegerField()
+    memory_limit = models.IntegerField()
+    defunct = models.CharField(max_length=1)
+    accepted = models.IntegerField(blank=True, null=True)
+    submit = models.IntegerField(blank=True, null=True)
+    solved = models.IntegerField(blank=True, null=True)
+    problem_type = models.IntegerField()
+    hastestdata = models.IntegerField(blank=True, null=True)
+    owner = models.IntegerField(blank=True, null=True)
+    is_verify = models.IntegerField(blank=True, null=True)
+    analysis = models.CharField(max_length=200, blank=True, null=True)
+    difficulty = models.IntegerField(blank=True, null=True)
+    tags = models.ManyToManyField(Tags, through='ProblemTag')
+
+    class Meta:
+        managed = True
+        db_table = 'problem'
+
+
+class ProblemTag(models.Model):
+    problem_id = models.ForeignKey(Problem, on_delete=models.CASCADE, db_column='problem_id')
+    tagid = models.ForeignKey(Tags, on_delete=models.CASCADE, db_column='tagid')
+
+    class Meta:
+        managed = True
+        db_table = 'problem_tag'
+
+
+class Solution(models.Model):
+    problem_id = models.PositiveSmallIntegerField()
+    solution_id = models.AutoField(primary_key=True)
+    uid = models.PositiveSmallIntegerField(blank=True, null=True)
+    user_id = models.CharField(max_length=48)
+    time = models.PositiveSmallIntegerField()
+    memory = models.PositiveSmallIntegerField()
+    in_date = models.DateTimeField()
+    result = models.IntegerField()
+    language = models.PositiveIntegerField()
+    ip = models.CharField(max_length=15)
+    contest_id = models.PositiveSmallIntegerField(blank=True, null=True)
+    valid = models.IntegerField()
+    num = models.IntegerField()
+    code_length = models.PositiveSmallIntegerField()
+    judgetime = models.DateTimeField(blank=True, null=True)
+    pass_rate = models.DecimalField(max_digits=2, decimal_places=2)
+    lint_error = models.PositiveIntegerField()
+    judger = models.CharField(max_length=16)
+    problem_belong = models.PositiveIntegerField()
+    exam_id = models.PositiveSmallIntegerField()
+    test_id = models.PositiveIntegerField()
+    protype = models.PositiveIntegerField(blank=True, null=True)
+    fortest = models.CharField(max_length=45, blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'solution'
+
+
+class SourceCode(models.Model):
+    solution_id = models.IntegerField(max_length=11, primary_key=True)
+    source = models.TextField()
+
+    class Meta:
+        managed = True
+        db_table = 'source_code'
+
+
+class Runtimeinfo(models.Model):
+    solution_id = models.IntegerField(max_length=11, primary_key=True)
+    error = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'runtimeinfo'

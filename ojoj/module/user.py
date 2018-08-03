@@ -9,29 +9,17 @@ from rest_framework import generics
 from ..models import Users, School
 from ..models import Loginlog
 from ..serializers import UserSerializer,TeacherSerializer
-from ..utils import pwCheck, pwGen
+from ..utils import pwCheck, pwGen, get_pagination_data
 from hashlib import md5
 from time import time
 from ..utils import get_params_from_post, data_wrapper
 from ..decorators import login_required, identity_required, ID_ADMIN
+from .core import BaseListView
 
 
-class TeacherView(generics.GenericAPIView):
-    queryset = Users.objects.all()
+class TeacherView(BaseListView):
+    queryset = Users.objects.filter(identity=2).order_by('uid')
     serializer_class = TeacherSerializer
-    def get(self, request):
-        page = request.GET.get('page', 1)
-        pagesize = request.GET.get('pagesize', 10)
-        dataset = self.queryset.filter(identity=2).order_by('uid')
-        paginaor = Paginator(dataset, pagesize)
-        try:
-            teachers = paginaor.get_page(page)
-        except PageNotAnInteger:
-            teachers = paginaor.get_page(1)
-        except EmptyPage:
-            teachers = paginaor.get_page(paginaor.count)
-        serializer = self.get_serializer(teachers, many=True)
-        return Response(data_wrapper(serializer.data, success="true"))
 
     def post(self, request):
         namedict = {'code': 20001, 'nick': 20001, 'sex': 20001, 'academy': 20001, 'major': 20001,
@@ -41,7 +29,7 @@ class TeacherView(generics.GenericAPIView):
             return Response(data_wrapper(msg=params['error'], success="false"))
 
         # 检查user_id是否存在
-        user = self.queryset.filter(user_id=params['code'])
+        user = Users.objects.filter(user_id=params['code'])
         try:
             academy = School.objects.get(pk=params['academy'])
             # 存在的话就做他老师
@@ -74,7 +62,7 @@ class TeacherView(generics.GenericAPIView):
         params = get_params_from_post(request, namedict)
         if params['error']:
             return Response(data_wrapper(msg=params['error'], success="false"))
-        user = self.queryset.filter(identity=2, uid=params['uid'])
+        user = self.queryset.filter(uid=params['uid'])
         if user.count() != 0:
             # 只是将身份重置为0（默认普通用户），并非真正删除
             user = user[0]
@@ -191,25 +179,9 @@ class UserLoginView(generics.GenericAPIView):
         return Response(data_wrapper(msg=msg, success=success, data=serializer.data))
 
 
-class UserView(generics.GenericAPIView):
+class UserView(BaseListView):
     queryset = Users.objects.all().order_by('-uid')
     serializer_class = UserSerializer
-
-    @login_required
-    @identity_required(ID_ADMIN)
-    def get(self, request):
-        page = request.GET.get('page', 1)
-        pagesize = request.GET.get('pagesize', 10)
-        dataset = self.get_queryset()
-        paginaor = Paginator(dataset, pagesize)
-        try:
-            users = paginaor.get_page(page)
-        except PageNotAnInteger:
-            users = paginaor.get_page(1)
-        except EmptyPage:
-            users = paginaor.get_page(paginaor.count)
-        serializer = self.get_serializer(users, many=True)
-        return Response(data_wrapper(serializer.data, success="true"))
 
     @login_required
     @identity_required(ID_ADMIN)

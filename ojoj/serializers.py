@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Users, Class, School, CoursesTeacher
+from .models import *
 
 
 class TeacherSerializer(serializers.ModelSerializer):
@@ -68,3 +68,45 @@ class ClassSerializer(serializers.ModelSerializer):
         model = Class
         fields = ('class_id', 'class_name', 'grade', 'studentnum', 'course_num', 'academy_name')
 
+
+class ProblemSerializer(serializers.ModelSerializer):
+    tagnames = serializers.SerializerMethodField()
+
+    def get_tagnames(self, obj):
+        return [tag.tagname for tag in obj.tags.all()]
+
+    class Meta:
+        model = Problem
+        fields = ('problem_id', 'title', 'submit', 'accepted', 'problem_type', 'in_date',
+                  'hastestdata', 'tagnames')
+
+
+class ProblemDetailSerializer(serializers.ModelSerializer):
+    tagnames = serializers.SerializerMethodField()
+    tagids = serializers.SerializerMethodField()
+
+    def get_tagnames(self, obj):
+        return [tag.tagname for tag in obj.tags.all()]
+
+    def get_tagids(self, obj):
+        return [tag.tagid for tag in obj.tags.all()]
+
+    class Meta:
+        model = Problem
+        fields = ('problem_id', 'problem_type', 'title', 'description', 'memory_limit', 'time_limit',
+                  'input', 'output', 'sample_output', 'defunct', 'tagnames', 'tagids')
+
+
+class SolutionSerializer(serializers.ModelSerializer):
+    code = serializers.SerializerMethodField()
+    error_msg = serializers.SerializerMethodField()
+
+    def get_code(self, obj):
+        return SourceCode.objects.filter(solution_id=obj.solution_id)[0].source
+
+    def get_error_msg(self, obj):
+        return Runtimeinfo.objects.filter(solution_id=obj.solution_id)[0].error
+
+    class Meta:
+        model = Solution
+        fields = ('result', 'language', 'code', 'error_msg')
