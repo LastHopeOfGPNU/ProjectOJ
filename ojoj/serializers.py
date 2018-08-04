@@ -94,7 +94,7 @@ class ProblemDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Problem
         fields = ('problem_id', 'problem_type', 'title', 'description', 'memory_limit', 'time_limit',
-                  'input', 'output', 'sample_output', 'defunct', 'tagnames', 'tagids')
+                  'input', 'output', 'sample_output', 'sample_input', 'defunct', 'tagnames', 'tagids')
 
 
 class SolutionSerializer(serializers.ModelSerializer):
@@ -102,10 +102,16 @@ class SolutionSerializer(serializers.ModelSerializer):
     error_msg = serializers.SerializerMethodField()
 
     def get_code(self, obj):
-        return SourceCode.objects.filter(solution_id=obj.solution_id)[0].source
+        try:
+            return SourceCode.objects.filter(solution_id=obj.solution_id)[0].source
+        except:
+            return ""
 
     def get_error_msg(self, obj):
-        return Runtimeinfo.objects.filter(solution_id=obj.solution_id)[0].error
+        try:
+            return Runtimeinfo.objects.filter(solution_id=obj.solution_id)[0].error
+        except:
+            return ""
 
     class Meta:
         model = Solution
