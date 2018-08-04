@@ -1,10 +1,13 @@
 from rest_framework import generics
 from rest_framework.response import Response
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import OperationalError
 from .core import BaseListView
 from ..utils import data_wrapper, get_params_from_post
-from ..models import Problem, Solution, Users
+from ..models import Problem, Solution, Users, ProblemTag
 from ..serializers import ProblemSerializer, SolutionSerializer, ProblemDetailSerializer
+import json
+from json.decoder import JSONDecodeError
 
 
 class ProblemView(BaseListView):
@@ -26,13 +29,6 @@ class ProblemView(BaseListView):
         except ObjectDoesNotExist:
             return Response(data_wrapper(success="false", msg=20001))
         return Response(data_wrapper(success="true"))
-
-    def put(self, request):
-        namedict = {'problem_id': 20001, 'problem_type': 20001, 'title': 20001, 'time_limit': 20001,
-                    'memory_limit': 20001, 'description': 20001, 'input': 20001, 'output': 20001,
-                    'sample_output': 20001, 'sample_input': 20001, 'hint': 20001, 'source': 20001,
-                    'spj': 20001, 'defunct': 20001, 'tagids': 20001}
-        params = get_params_from_post(request, namedict)
 
     def get_dataset(self, request):
         title = request.GET.get('title', None)
@@ -59,6 +55,7 @@ class ProblemView(BaseListView):
 
 class ProblemDetailView(generics.GenericAPIView):
     queryset = Problem.objects.all()
+    serializer_class = ProblemDetailSerializer
 
     def get(self, request):
         try:
@@ -82,6 +79,35 @@ class ProblemDetailView(generics.GenericAPIView):
             return Response(data_wrapper(msg=20001, success="false"))
         except ObjectDoesNotExist:
             return Response(data_wrapper(msg=20001, success="false"))
+
+    def put(self, request):
+        namedict = {'problem_id': 20001, 'problem_type': 20001, 'title': 20001, 'time_limit': 20001,
+                    'memory_limit': 20001, 'description': 20001, 'input': 20001, 'output': 20001,
+                    'sample_output': 20001, 'sample_input': 20001, 'hint': 20001, 'source': 20001,
+                    'spj': 20001, 'defunct': 20001, 'tagids': 20001}
+        params = get_params_from_post(request, namedict)
+        if params['error']:
+            return Response(data_wrapper(success="false", msg=20001))
+        try:
+            problem = self.queryset.get(problem_id=params['problem_id'])
+            for key, value in params.items():
+                if key == 'tagids':
+                    tagids = json.loads(value)
+                    ori_tags = ProblemTag.objects.filter(problem_id=params['problem_id'])
+                    ori_tags.delete()
+                    for id in tagids:
+                        tag = ProblemTag.objects.create(problem_id=params['problem_id'], tagid=id)
+                        tag.save()
+                else:
+                    setattr(problem, key, value)
+            problem.save()
+        except ObjectDoesNotExist:
+            return Response(data_wrapper(success="false", msg=20001))
+        except OperationalError:
+            return Response(data_wrapper(success="false", msg=20001))
+        except JSONDecodeError:
+            return Response(data_wrapper(success="false", msg=20001))
+        return Response(data_wrapper(data=self.get_serializer(problem).data, success="true"))
 
 
 
