@@ -141,8 +141,8 @@ class Problem(models.Model):
     solved = models.IntegerField(blank=True, null=True)
     problem_type = models.IntegerField()
     hastestdata = models.IntegerField(blank=True, null=True)
-    owner = models.IntegerField(blank=True, null=True)
-    is_verify = models.IntegerField(blank=True, null=True)
+    owner = models.IntegerField(blank=True, null=True, default=-1)
+    is_verify = models.IntegerField(blank=True, null=True, default=1)
     analysis = models.CharField(max_length=200, blank=True, null=True)
     difficulty = models.IntegerField(blank=True, null=True)
     tags = models.ManyToManyField(Tags, through='ProblemTag')
@@ -192,7 +192,7 @@ class Solution(models.Model):
 
 
 class SourceCode(models.Model):
-    solution_id = models.IntegerField(max_length=11, primary_key=True)
+    solution_id = models.IntegerField(primary_key=True)
     source = models.TextField()
 
     class Meta:
@@ -201,9 +201,23 @@ class SourceCode(models.Model):
 
 
 class Runtimeinfo(models.Model):
-    solution_id = models.IntegerField(max_length=11, primary_key=True)
+    solution_id = models.IntegerField(primary_key=True)
     error = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = True
         db_table = 'runtimeinfo'
+
+
+class News(models.Model):
+    news_id = models.AutoField(primary_key=True)
+    uid = models.ForeignKey(Users, on_delete=models.CASCADE, db_column='uid')
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    time = models.DateTimeField()
+    importance = models.IntegerField()
+    defunct = models.CharField(max_length=1)
+
+    class Meta:
+        managed = True
+        db_table = 'news'

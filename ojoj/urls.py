@@ -5,6 +5,7 @@ from .module.class_view import *
 from .module.student import *
 from .module.school import *
 from .module.problem import *
+from .module.news import *
 from django.conf.urls import url
 
 app_name = 'ojoj'
@@ -22,6 +23,7 @@ urlpatterns = [
     url('schools$', SchoolView.as_view()),
     url('problems$', ProblemView.as_view()),
     url('problems/detail', ProblemDetailView.as_view()),
+    url('news$', NewsView.as_view()),
     # 页面URL
     path('', views.index, name='index'),
 ]

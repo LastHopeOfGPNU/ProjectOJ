@@ -1,10 +1,11 @@
 from rest_framework import generics
 from rest_framework.response import Response
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import OperationalError
+from django.db import OperationalError, DataError
+from django.utils import timezone
 from .core import BaseListView
 from ..utils import data_wrapper, get_params_from_post
-from ..models import Problem, Solution, Users, ProblemTag
+from ..models import Problem, Solution, Users, ProblemTag, Tags
 from ..serializers import ProblemSerializer, SolutionSerializer, ProblemDetailSerializer
 import json
 from json.decoder import JSONDecodeError
@@ -16,7 +17,7 @@ class ProblemView(BaseListView):
 
     def delete(self, request):
         try:
-            problem_id = request.GET.get('problem_id')
+            problem_id = request.GET['problem_id']
             problem = self.get_queryset().get(problem_id=problem_id)
             # 删除问题
             problem.delete()
@@ -27,6 +28,8 @@ class ProblemView(BaseListView):
         except KeyError:
             return Response(data_wrapper(success="false", msg=20001))
         except ObjectDoesNotExist:
+            return Response(data_wrapper(success="false", msg=20001))
+        except OperationalError:
             return Response(data_wrapper(success="false", msg=20001))
         return Response(data_wrapper(success="true"))
 
@@ -90,13 +93,16 @@ class ProblemDetailView(generics.GenericAPIView):
             return Response(data_wrapper(success="false", msg=20001))
         try:
             problem = self.queryset.get(problem_id=params['problem_id'])
+            params.pop('problem_id')
+            params['in_date'] = timezone.now()
             for key, value in params.items():
                 if key == 'tagids':
                     tagids = json.loads(value)
-                    ori_tags = ProblemTag.objects.filter(problem_id=params['problem_id'])
+                    ori_tags = ProblemTag.objects.filter(problem_id=problem)
                     ori_tags.delete()
                     for id in tagids:
-                        tag = ProblemTag.objects.create(problem_id=params['problem_id'], tagid=id)
+                        tagid = Tags.objects.get(tagid=id)
+                        tag = ProblemTag.objects.create(problem_id=problem, tagid=tagid)
                         tag.save()
                 else:
                     setattr(problem, key, value)
@@ -105,9 +111,36 @@ class ProblemDetailView(generics.GenericAPIView):
             return Response(data_wrapper(success="false", msg=20001))
         except OperationalError:
             return Response(data_wrapper(success="false", msg=20001))
+        except DataError:
+            return Response(data_wrapper(success="false", msg=20001))
         except JSONDecodeError:
             return Response(data_wrapper(success="false", msg=20001))
         return Response(data_wrapper(data=self.get_serializer(problem).data, success="true"))
 
-
+    def post(self, request):
+        namedict = {'problem_type': 20001, 'title': 20001, 'time_limit': 20001,
+                    'memory_limit': 20001, 'description': 20001, 'input': 20001, 'output': 20001,
+                    'sample_output': 20001, 'sample_input': 20001, 'hint': 20001, 'source': 20001,
+                    'spj': 20001, 'defunct': 20001, 'tagids': 20001}
+        params = get_params_from_post(request, namedict)
+        if params.pop('error'):
+            return Response(data_wrapper(success="false", msg=20001))
+        try:
+            params['in_date'] = timezone.now()
+            tagids = json.loads(params.pop('tagids'))
+            problem = Problem.objects.create(**params)
+            for id in tagids:
+                tagid = Tags.objects.get(tagid=id)
+                tag = ProblemTag.objects.create(problem_id=problem, tagid=tagid)
+                tag.save()
+            problem.save()
+        except ObjectDoesNotExist:
+            return Response(data_wrapper(success="false", msg=20001))
+        except OperationalError:
+            return Response(data_wrapper(success="false", msg=20001))
+        except DataError:
+            return Response(data_wrapper(success="false", msg=20001))
+        except JSONDecodeError:
+            return Response(data_wrapper(success="false", msg=20001))
+        return Response(data_wrapper(data=self.get_serializer(problem).data, success="true"))
 

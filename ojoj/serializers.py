@@ -94,7 +94,8 @@ class ProblemDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Problem
         fields = ('problem_id', 'problem_type', 'title', 'description', 'memory_limit', 'time_limit',
-                  'input', 'output', 'sample_output', 'sample_input', 'defunct', 'tagnames', 'tagids')
+                  'input', 'output', 'sample_output', 'sample_input', 'defunct', 'tagnames', 'tagids',
+                  'hint', 'source', 'in_date')
 
 
 class SolutionSerializer(serializers.ModelSerializer):
@@ -116,3 +117,14 @@ class SolutionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Solution
         fields = ('result', 'language', 'code', 'error_msg')
+
+
+class NewsSerializer(serializers.ModelSerializer):
+    nick = serializers.SerializerMethodField()
+
+    def get_nick(self, obj):
+        return obj.uid.nick
+
+    class Meta:
+        model = News
+        fields = ('news_id', 'uid', 'title', 'time', 'content', 'importance', 'nick', 'defunct')
