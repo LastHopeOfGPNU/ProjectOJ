@@ -236,3 +236,12 @@ class Feedback(models.Model):
     class Meta:
         managed = True
         db_table = 'feedback'
+
+class Maintenance(models.Model):
+    id = models.AutoField(primary_key=True)
+    start = models.DateTimeField(blank=True, null=True)
+    end = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'maintenance'

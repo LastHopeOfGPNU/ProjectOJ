@@ -143,3 +143,10 @@ class FeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feedback
         fields = ('fid', 'uid', 'identity', 'title', 'type', 'nick', 'is_mark', 'is_solved', 'content')
+
+
+class MaintenanceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Maintenance
+        fields = ('start', 'end')
