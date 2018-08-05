@@ -221,3 +221,18 @@ class News(models.Model):
     class Meta:
         managed = True
         db_table = 'news'
+
+
+class Feedback(models.Model):
+    fid = models.AutoField(primary_key=True)
+    uid = models.ForeignKey(Users, on_delete=models.CASCADE, db_column='uid')
+    type = models.IntegerField(blank=True, null=True)
+    is_mark = models.IntegerField(blank=True, null=True, default=0)
+    is_solved = models.IntegerField(blank=True, null=True, default=0)
+    title = models.CharField(max_length=100, blank=True, null=True)
+    content = models.TextField(blank=True, null=True)
+    remark = models.CharField(max_length=100, blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'feedback'

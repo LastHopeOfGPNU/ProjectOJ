@@ -1,6 +1,8 @@
 from rest_framework import generics
 from rest_framework.response import Response
 from django.core.paginator import PageNotAnInteger, EmptyPage, Paginator
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import OperationalError
 from ..utils import data_wrapper
 
 
@@ -27,3 +29,16 @@ class BaseListView(generics.GenericAPIView):
             'total': dataset.count()
         })
         return Response(data)
+
+    def delete(self, request):
+        try:
+            pk = request.GET[self.pk_field]
+            obj = self.get_queryset().get(pk=pk)
+            obj.delete()
+        except KeyError:
+            return Response(data_wrapper(success="false", msg=20001))
+        except ObjectDoesNotExist:
+            return Response(data_wrapper(success="false", msg=20001))
+        except OperationalError:
+            return Response(data_wrapper(success="false", msg=20001))
+        return Response(data_wrapper(success="true"))

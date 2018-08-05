@@ -11,6 +11,7 @@ from ..utils import get_params_from_post, data_wrapper
 class NewsView(BaseListView):
     queryset = News.objects.all().order_by('-time')
     serializer_class = NewsSerializer
+    pk_field = 'news_id'
 
     def post(self, request):
         namedict = {'uid': 20001, 'title': 20001, 'content': 20001,
@@ -25,7 +26,7 @@ class NewsView(BaseListView):
             news.save()
         except ObjectDoesNotExist:
             return Response(data_wrapper(success="false", msg=20001))
-        except ObjectDoesNotExist:
+        except OperationalError:
             return Response(data_wrapper(success="false", msg=20001))
         return Response(data_wrapper(success="true", data=self.get_serializer(news).data))
 
@@ -48,18 +49,6 @@ class NewsView(BaseListView):
             return Response(data_wrapper(success="false", msg=20001))
         return Response(data_wrapper(success="true", data=self.get_serializer(news).data))
 
-    def delete(self, request):
-        try:
-            news_id = request.GET['news_id']
-            news = self.get_queryset().get(news_id=news_id)
-            news.delete()
-        except KeyError:
-            return Response(data_wrapper(success="false", msg=20001))
-        except ObjectDoesNotExist:
-            return Response(data_wrapper(success="false", msg=20001))
-        except OperationalError:
-            return Response(data_wrapper(success="false", msg=20001))
-        return Response(data_wrapper(success="true"))
 
     def get_dataset(self, request):
         try:

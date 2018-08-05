@@ -2,3 +2,4 @@ projectoj/settings.py
 projectoj/__pycache__/*
 ojoj/__pycache__/*
 ojoj/tmp/*
+*.pyc

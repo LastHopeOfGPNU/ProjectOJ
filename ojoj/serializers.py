@@ -128,3 +128,18 @@ class NewsSerializer(serializers.ModelSerializer):
     class Meta:
         model = News
         fields = ('news_id', 'uid', 'title', 'time', 'content', 'importance', 'nick', 'defunct')
+
+
+class FeedbackSerializer(serializers.ModelSerializer):
+    identity = serializers.SerializerMethodField()
+    nick = serializers.SerializerMethodField()
+
+    def get_identity(self, obj):
+        return obj.uid.identity
+
+    def get_nick(self, obj):
+        return obj.uid.nick
+
+    class Meta:
+        model = Feedback
+        fields = ('fid', 'uid', 'identity', 'title', 'type', 'nick', 'is_mark', 'is_solved', 'content')
