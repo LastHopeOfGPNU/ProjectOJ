@@ -8,6 +8,7 @@ from .module.problem import *
 from .module.news import *
 from .module.feedback import *
 from .module.maintenance import *
+from .module.contest import *
 from django.conf.urls import url
 
 app_name = 'ojoj'
@@ -28,6 +29,8 @@ urlpatterns = [
     url('news$', NewsView.as_view()),
     url('feedbacks$', FeedbackView.as_view()),
     url('maintenance$', MaintenanceView.as_view()),
+    url('contests$', ContestView.as_view()),
+    url('contests/detail', ContestDetailView.as_view()),
     # 页面URL
     path('', views.index, name='index'),
 ]

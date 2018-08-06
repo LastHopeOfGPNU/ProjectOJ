@@ -245,3 +245,30 @@ class Maintenance(models.Model):
     class Meta:
         managed = True
         db_table = 'maintenance'
+
+
+class Contest(models.Model):
+    contest_id = models.AutoField(primary_key=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
+    begin = models.DateTimeField(blank=True, null=True)
+    end = models.DateTimeField(blank=True, null=True)
+    state = models.CharField(max_length=1, default='N')
+    holder = models.IntegerField(blank=True, null=True)
+    type = models.IntegerField()
+    password = models.CharField(max_length=16)
+    score = models.IntegerField(blank=True, null=True)
+    problem_set = models.ManyToManyField(Problem, through='ContestProblem')
+
+    class Meta:
+        managed = True
+        db_table = 'contest'
+
+
+class ContestProblem(models.Model):
+    problem_id = models.ForeignKey(Problem, on_delete=models.CASCADE, db_column='problem_id')
+    contest_id = models.ForeignKey(Contest, on_delete=models.CASCADE, db_column='contest_id')
+    rank = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'contest_problem'

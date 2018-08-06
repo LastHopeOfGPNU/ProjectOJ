@@ -150,3 +150,40 @@ class MaintenanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Maintenance
         fields = ('start', 'end')
+
+
+class ContestSerializer(serializers.ModelSerializer):
+    has_password = serializers.SerializerMethodField()
+
+    def get_has_password(self, obj):
+        if obj.password:
+            return 1
+        return 0
+
+    class Meta:
+        model = Contest
+        fields = ('contest_id', 'begin', 'end', 'holder', 'has_password', 'score', 'state', 'title', 'type')
+
+
+class ContestProblemSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Problem
+        fields = ('problem_id', 'accepted', 'submit', 'title')
+
+
+class ContestDetailSerializer(serializers.ModelSerializer):
+    contest_info = serializers.SerializerMethodField()
+    problem_info = serializers.SerializerMethodField()
+
+    def get_contest_info(self, obj):
+        return ContestSerializer(obj).data
+
+    def get_problem_info(self, obj):
+        problem_set = obj.problem_set.order_by('problem_id')
+        return {'problem_list': ContestProblemSerializer(problem_set, many=True).data,
+                'problem_num': problem_set.count()}
+
+    class Meta:
+        model = Contest
+        fields = ('contest_info', 'problem_info')
