@@ -187,3 +187,34 @@ class ContestDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contest
         fields = ('contest_info', 'problem_info')
+
+
+class LabelSerilizer(serializers.ModelSerializer):
+    article_num = serializers.SerializerMethodField()
+
+    def get_article_num(self, obj):
+        return ArticleLabel.objects.filter(labelid=obj).count()
+
+    class Meta:
+        model = Label
+        fields = ('labelid', 'name', 'pid', 'description', 'type', 'iconUrl', 'bannerUrl', 'article_num')
+
+
+class ArticleSerializer(serializers.ModelSerializer):
+    avatarurl = serializers.SerializerMethodField()
+    publisherid = serializers.SerializerMethodField()
+    publishername = serializers.SerializerMethodField()
+
+    def get_avatarurl(self, obj):
+        return obj.publisher.avatarurl
+
+    def get_publisherid(self, obj):
+        return obj.publisher.uid
+
+    def get_publishername(self, obj):
+        return obj.publisher.nick
+
+    class Meta:
+        model = Article
+        fields = ('articleid', 'title', 'agreenum', 'avatarurl', 'isMarkdown', 'isQuality', 'isTop',
+                  'labelid', 'publisherid', 'publishername', 'publishtime', 'pvnum', 'summary', 'tagnames')

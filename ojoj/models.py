@@ -272,3 +272,52 @@ class ContestProblem(models.Model):
     class Meta:
         managed = True
         db_table = 'contest_problem'
+
+
+class Article(models.Model):
+    articleid = models.AutoField(primary_key=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
+    publisher = models.ForeignKey(Users, on_delete=models.CASCADE, db_column='publisherid')
+    content = models.TextField(blank=True, null=True)
+    publishtime = models.DateTimeField(blank=True, null=True)
+    pvnum = models.IntegerField(blank=True, null=True)
+    type = models.IntegerField(blank=True, null=True)
+    agreenum = models.IntegerField()
+    commentnum = models.IntegerField()
+    summary = models.CharField(max_length=500, blank=True, null=True)
+    isMarkdown = models.IntegerField(db_column='isMarkdown', blank=True, null=True)
+    mcontent = models.TextField(blank=True, null=True)
+    tagnames = models.CharField(max_length=255, blank=True, null=True)
+    labelid = models.IntegerField(blank=True, null=True)
+    isTop = models.IntegerField(db_column='isTop', blank=True, null=True)
+    isQuality = models.IntegerField(db_column='isQuality', blank=True, null=True)
+    isAuthorized = models.IntegerField(db_column='isAuthorized', blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'article'
+
+
+# 文章的标签
+class Label(models.Model):
+    labelid = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255, blank=True, null=True)
+    pid = models.IntegerField(blank=True, null=True)
+    description = models.CharField(max_length=188, blank=True, null=True)
+    type = models.CharField(max_length=45, blank=True, null=True)
+    iconUrl = models.CharField(db_column='iconUrl', max_length=1000, blank=True, null=True)
+    bannerUrl = models.CharField(db_column='bannerUrl', max_length=1000, blank=True, null=True)
+    articles = models.ManyToManyField(Article, through='ArticleLabel')
+
+    class Meta:
+        managed = True
+        db_table = 'label'
+
+
+class ArticleLabel(models.Model):
+    articleid = models.ForeignKey(Article, on_delete=models.CASCADE, db_column='articleid')
+    labelid = models.ForeignKey(Label, on_delete=models.CASCADE, db_column='labelid')
+
+    class Meta:
+        managed = True
+        db_table = 'article_label'
