@@ -9,12 +9,81 @@ from rest_framework import generics
 from ..models import Users, School
 from ..models import Loginlog
 from ..serializers import UserSerializer,TeacherSerializer
-from ..utils import pwCheck, pwGen, get_pagination_data
+from ..utils import pwCheck, pwGen
 from hashlib import md5
 from time import time
+import xlrd
+import re
+import os
+from xlrd.biffh import XLRDError
 from ..utils import get_params_from_post, data_wrapper
-from ..decorators import login_required, identity_required, ID_ADMIN
 from .core import BaseListView
+
+
+def create_teacher(params):
+    # 检查user_id是否存在
+    user = Users.objects.filter(user_id=params['code'])
+    academy = School.objects.get(pk=params['academy'])
+    # 存在的话就做他老师
+    if user.count() != 0:
+        user = user[0]
+        user.identity = 2
+        user.academy = academy
+        user.major = params['major']
+        user.save()
+    # 不存在就做他存在
+    else:
+        password = pwGen("123456")
+        ip = params['ip']
+
+        # create & insert
+        user = Users.objects.create(user_id=params['code'], code=params['code'], nick=params['nick'], sex=params['sex'],
+                                    academy=academy, major=params['major'],
+                                    contact=params['contact'], email=params['email'], qq=params['qq'],
+                                    password=password, ip=ip, identity=2) # identity=2代表老师身份
+        user.save()
+    return user
+
+
+class TeacherFileView(generics.GenericAPIView):
+
+    def post(self, request):
+        try:
+            data = request.FILES['file']
+            filename = str(timezone.now())
+            filename = "%s.xlsx" % re.sub(r'\D', '', filename) # 只留下数字
+            path = 'ojoj/tmp/%s' % filename
+            # 临时存放上传文件
+            with open(path, 'wb') as file:
+                for i in data: file.write(i)
+            total = 0
+            workbook = xlrd.open_workbook(path)
+            sheet = workbook.sheet_by_index(0)
+            # 开始迭代每一行
+            for i in range(1, sheet.nrows):
+                row = sheet.row_values(i)
+                # 填充教师的每个字段
+                # 'code': 20001, 'nick': 20001, 'sex': 20001, 'academy': 20001, 'major': 20001,
+                # 'contact': 20001, 'email': 20001, 'qq': 20001
+                params = {
+                    'code': str(int(row[0])), 'nick': row[1], 'sex': int(row[2]), 'academy': int(row[3]),
+                    'major': int(row[4]), 'contact': str(int(row[5])), 'email': row[6], 'qq': str(int(row[7])),
+                    'ip': request.META['REMOTE_ADDR']
+                }
+                teacher = create_teacher(params)
+                total += 1
+        except KeyError:
+            return Response(data_wrapper(msg=20001, success="false"))
+        except XLRDError:
+            return Response({'data': '', 'msg': '文件格式不支持', 'success': 'false'})
+        except Exception as e:
+            print(e)
+            msg = '表格格式有误，已添加教师%d名，请检查第%d行数据' % (total, total+2)
+            return Response({'data': '', 'msg': msg, 'success': 'false'})
+        finally:
+            # 删除临时文件
+            os.remove(path)
+        return Response({'msg': '成功添加教师%d名' % total, 'success': 'true', 'data': ''})
 
 
 class TeacherView(BaseListView):
@@ -27,29 +96,9 @@ class TeacherView(BaseListView):
         params = get_params_from_post(request, namedict)
         if params['error']:
             return Response(data_wrapper(msg=params['error'], success="false"))
-
-        # 检查user_id是否存在
-        user = Users.objects.filter(user_id=params['code'])
         try:
-            academy = School.objects.get(pk=params['academy'])
-            # 存在的话就做他老师
-            if user.count() != 0:
-                user = user[0]
-                user.identity = 2
-                user.academy = academy
-                user.major = params['major']
-                user.save()
-            # 不存在就做他存在
-            else:
-                password = pwGen("123456")
-                ip = request.META['REMOTE_ADDR']
-
-                # create & insert
-                user = Users.objects.create(user_id=params['code'], code=params['code'], nick=params['nick'], sex=params['sex'],
-                                            academy=academy, major=params['major'],
-                                            contact=params['contact'], email=params['email'], qq=params['qq'],
-                                            password=password, ip=ip, identity=2) # identity=2代表老师身份
-                user.save()
+            params['ip'] = request.META['REMOTE_ADDR']
+            user = create_teacher(params)
         except OperationalError:
             return Response(data_wrapper(msg=20001, success="false"))
         except ObjectDoesNotExist:
@@ -183,8 +232,6 @@ class UserView(BaseListView):
     queryset = Users.objects.all().order_by('-uid')
     serializer_class = UserSerializer
 
-    @login_required
-    @identity_required(ID_ADMIN)
     def put(self, request):
         namedict = {'uid': 20001, 'nick': 20001, 'email': 20001, 'sex': 20001, 'qq': 20001, 'signature': 20001}
         params = get_params_from_post(request, namedict)

@@ -218,3 +218,10 @@ class ArticleSerializer(serializers.ModelSerializer):
         model = Article
         fields = ('articleid', 'title', 'agreenum', 'avatarurl', 'isMarkdown', 'isQuality', 'isTop',
                   'labelid', 'publisherid', 'publishername', 'publishtime', 'pvnum', 'summary', 'tagnames')
+
+
+class TagSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Tags
+        fields = ('tagid', 'tagname', 'pid')

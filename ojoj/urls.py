@@ -10,6 +10,7 @@ from .module.feedback import *
 from .module.maintenance import *
 from .module.contest import *
 from .module.article import *
+from .module.tag import *
 from django.conf.urls import url
 
 app_name = 'ojoj'
@@ -19,10 +20,12 @@ urlpatterns = [
     url('users/login/$', UserLoginView.as_view()),
     url('users/register/$', UserRegisterView.as_view()),
     url('users$', UserView.as_view()),
-    url('users/teachers', TeacherView.as_view()),
+    url('users/teachers$', TeacherView.as_view()),
+    url('users/teachers/upload', TeacherFileView.as_view()),
     url('classes$', ClassView.as_view()),
     url('classes/detail', ClassDetailView.as_view()),
     url('students$', StudentView.as_view()),
+    url('students/upload', StudentFileView.as_view()),
     url('students/detail', StudentDetailView.as_view()),
     url('schools$', SchoolView.as_view()),
     url('problems$', ProblemView.as_view()),
@@ -34,6 +37,7 @@ urlpatterns = [
     url('contests/detail', ContestDetailView.as_view()),
     url('articles$', ArticleView.as_view()),
     url('articles/labels', LabelView.as_view()),
+    url('tags$', TagView.as_view()),
     # 页面URL
     path('', views.index, name='index'),
 ]
