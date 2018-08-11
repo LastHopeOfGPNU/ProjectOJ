@@ -225,3 +225,18 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tags
         fields = ('tagid', 'tagname', 'pid')
+
+
+class StateSerializer(serializers.ModelSerializer):
+    nick = serializers.SerializerMethodField()
+
+    def get_nick(self, obj):
+        try:
+            return Users.objects.get(uid=obj.uid).nick
+        except:
+            return ""
+
+    class Meta:
+        model = Solution
+        fields = ('code_length', 'in_date', 'language', 'memory', 'nick', 'problem_id', 'protype', 'result',
+                  'solution_id', 'time', 'uid')
