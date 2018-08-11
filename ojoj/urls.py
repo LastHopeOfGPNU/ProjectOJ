@@ -11,6 +11,7 @@ from .module.maintenance import *
 from .module.contest import *
 from .module.article import *
 from .module.tag import *
+from .module.rank import *
 from django.conf.urls import url
 
 app_name = 'ojoj'
@@ -38,6 +39,7 @@ urlpatterns = [
     url('articles$', ArticleView.as_view()),
     url('articles/labels', LabelView.as_view()),
     url('tags$', TagView.as_view()),
+    url('ranks$', RankView.as_view()),
     # 页面URL
     path('', views.index, name='index'),
 ]

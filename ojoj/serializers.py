@@ -78,7 +78,7 @@ class ProblemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Problem
         fields = ('problem_id', 'title', 'submit', 'accepted', 'problem_type', 'in_date',
-                  'hastestdata', 'tagnames')
+                  'hastestdata', 'tagnames', 'accept_rate')
 
 
 class ProblemDetailSerializer(serializers.ModelSerializer):

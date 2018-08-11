@@ -39,12 +39,13 @@ class ProblemView(BaseListView):
         problem_type = request.GET.get('problem_type', None)
         tagid = request.GET.get('tagid', None)
         defunct = request.GET.get('defunct', None)
-        dataset = self.get_queryset()
+        accept_rate = request.GET.get('accept_rate', None)
+        finished_by = request.GET.get('finished_by', None)
+        dataset = self.get_queryset().order_by('problem_id')
 
         if tagid:
             dataset = dataset.filter(tags__tagid=tagid)
         if title:
-            print("title:", title)
             dataset = dataset.filter(title=title)
         if problem_id:
             dataset = dataset.filter(problem_id=problem_id)
@@ -52,8 +53,16 @@ class ProblemView(BaseListView):
             dataset = dataset.filter(problem_type=problem_type)
         if defunct:
             dataset = dataset.filter(defunct=defunct)
+        if accept_rate:
+            if accept_rate.lower() == 'desc':
+                dataset = dataset.order_by('-accept_rate')
+            elif accept_rate.lower() == 'asc':
+                dataset = dataset.order_by('accept_rate')
+        if finished_by:
+            solution = Solution.objects.filter(uid=finished_by)
+            dataset = dataset.filter(problem_id__in=solution.values_list('problem_id', flat=True))
 
-        return dataset.filter(is_verify=1).order_by('problem_id')
+        return dataset.filter(is_verify=1)
 
 
 class ProblemDetailView(generics.GenericAPIView):

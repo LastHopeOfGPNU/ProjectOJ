@@ -4,10 +4,29 @@ from random import random, randint
 from io import StringIO
 from PIL import Image, ImageFont, ImageDraw, ImageFilter
 from django.core.paginator import PageNotAnInteger, EmptyPage, Paginator
+from django.db import connection
 from .meta.msg import MSG_DICT
+from .models import Problem
 
 encoding = 'utf-8'
 
+def execute_raw_sql(sql):
+    cursor = connection.cursor()
+    try:
+        cursor.execute(sql)
+    except:
+        pass
+    return cursor.fetchall()
+
+def set_accept_rate():
+    problems = Problem.objects.all()
+    for problem in problems:
+        try:
+            problem.accept_rate = problem.accepted / problem.submit
+            problem.save()
+        except:
+            continue
+    print('OK')
 
 def get_pagination_data(request, get_serializer, queryset):
     page = request.GET.get('page', 1)
@@ -132,5 +151,4 @@ class ValidateCode:
 
     def get_code(self):
         return self.__code.lower()
-
 

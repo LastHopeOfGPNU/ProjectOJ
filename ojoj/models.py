@@ -145,6 +145,7 @@ class Problem(models.Model):
     is_verify = models.IntegerField(blank=True, null=True, default=1)
     analysis = models.CharField(max_length=200, blank=True, null=True)
     difficulty = models.IntegerField(blank=True, null=True)
+    accept_rate = models.FloatField()
     tags = models.ManyToManyField(Tags, through='ProblemTag')
 
     class Meta:
