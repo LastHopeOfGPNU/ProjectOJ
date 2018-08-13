@@ -66,13 +66,14 @@ class TeacherFileView(generics.GenericAPIView):
                 # 'code': 20001, 'nick': 20001, 'sex': 20001, 'academy': 20001, 'major': 20001,
                 # 'contact': 20001, 'email': 20001, 'qq': 20001
                 params = {
-                    'code': str(int(row[0])), 'nick': row[1], 'sex': int(row[2]), 'academy': int(row[3]),
+                    'code': str(row[0]).split('.')[0], 'nick': row[1], 'sex': int(row[2]), 'academy': int(row[3]),
                     'major': int(row[4]), 'contact': str(int(row[5])), 'email': row[6], 'qq': str(int(row[7])),
                     'ip': request.META['REMOTE_ADDR']
                 }
                 teacher = create_teacher(params)
                 total += 1
-        except KeyError:
+        except KeyError as e:
+            print(e)
             return Response(data_wrapper(msg=20001, success="false"))
         except XLRDError:
             return Response({'data': '', 'msg': '文件格式不支持', 'success': 'false'})
@@ -246,4 +247,17 @@ class UserView(BaseListView):
             return Response(data_wrapper(success="false", msg=20001))
         except OperationalError:
             return Response(data_wrapper(success="false", msg=20001))
+        return Response(data_wrapper(data=self.get_serializer(user).data, success="true"))
+
+
+class UserDetailView(generics.GenericAPIView):
+    queryset = Users.objects.all()
+    serializer_class = UserSerializer
+
+    def get(self, request):
+        try:
+            uid = request.GET['uid']
+            user = self.queryset.get(uid=uid)
+        except:
+            return Response(data_wrapper(msg=20001, success="false"))
         return Response(data_wrapper(data=self.get_serializer(user).data, success="true"))

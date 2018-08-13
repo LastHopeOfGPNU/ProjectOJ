@@ -13,6 +13,21 @@ class ClassView(BaseListView):
     queryset = Class.objects.all().order_by('-grade')
     serializer_class = ClassSerializer
 
+    def get_dataset(self, request):
+        academy_id = request.GET.get('academy_id', None)
+        grade = request.GET.get('grade', None)
+        dataset = self.get_queryset()
+
+        try:
+            if academy_id:
+                academy = School.objects.get(id=academy_id)
+                dataset = dataset.filter(academy_id=academy)
+            if grade:
+                dataset = dataset.filter(grade=grade)
+        except:
+            return dataset.none()
+        return dataset
+
     def post(self, request):
         namedict = {'class_id': 20001, 'class_name': 20001, 'grade': 20001, 'academy_id': 20001}
         params = get_params_from_post(request, namedict)

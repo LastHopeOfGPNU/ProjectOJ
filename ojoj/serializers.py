@@ -21,14 +21,15 @@ class TeacherSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Users
-        fields = ('uid', 'user_id', 'nick', 'contact', 'code', 'academy_name', 'major_name', 'course_num')
+        fields = ('uid', 'user_id', 'nick', 'contact', 'code', 'academy_name', 'major_name', 'course_num',
+                  'sex', 'email', 'qq')
 
 
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Users
-        fields = ('uid', 'user_id', 'nick', 'identity', 'cookie', 'avatarurl', 'reg_time', 'login_time',
+        fields = ('uid', 'user_id', 'nick', 'identity', 'avatarurl', 'reg_time', 'login_time',
                   'email', 'sex', 'qq', 'signature')
 
 
