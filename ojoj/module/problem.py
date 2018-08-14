@@ -46,7 +46,7 @@ class ProblemView(BaseListView):
         if tagid:
             dataset = dataset.filter(tags__tagid=tagid)
         if title:
-            dataset = dataset.filter(title=title)
+            dataset = dataset.filter(title__contains=title)
         if problem_id:
             dataset = dataset.filter(problem_id=problem_id)
         if problem_type:

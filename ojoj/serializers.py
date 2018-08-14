@@ -52,7 +52,7 @@ class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = ('uid', 'code', 'nick', 'sex', 'submit', 'solved', 'login_time', 'academy_name', 'class_name',
-                  'contact')
+                  'contact', 'grade')
 
 
 class ClassSerializer(serializers.ModelSerializer):
