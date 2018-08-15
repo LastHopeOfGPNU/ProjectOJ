@@ -18,6 +18,7 @@ import os
 from xlrd.biffh import XLRDError
 from ..utils import get_params_from_post, data_wrapper
 from .core import BaseListView
+from .problem import get_problem_info
 
 
 def create_teacher(params):
@@ -226,7 +227,12 @@ class UserLoginView(generics.GenericAPIView):
         if msg != 10002:
             user = None
         serializer = self.get_serializer(user)
-        return Response(data_wrapper(msg=msg, success=success, data=serializer.data))
+        problem_info = get_problem_info(user.uid)
+        data = {
+            'user_info': serializer.data,
+            'problem_info': problem_info
+        }
+        return Response(data_wrapper(msg=msg, success=success, data=data))
 
 
 class UserView(BaseListView):

@@ -178,7 +178,9 @@ class ContestDetailSerializer(serializers.ModelSerializer):
     problem_info = serializers.SerializerMethodField()
 
     def get_contest_info(self, obj):
-        return ContestSerializer(obj).data
+        data = ContestSerializer(obj).data
+        data['password'] = obj.password
+        return data
 
     def get_problem_info(self, obj):
         problem_set = obj.problem_set.order_by('problem_id')

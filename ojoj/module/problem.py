@@ -11,6 +11,40 @@ import json
 from json.decoder import JSONDecodeError
 
 
+# 获取用户的做题情况
+# 已完成列表：[{题号: a, 通过数：b, 提交数：}, ...]
+# 未完成列表：[{题号: a, 通过数：0, 提交数：}, ...]
+def get_problem_info(uid):
+    done_list = []
+    not_done_list = []
+    # 所有已做题目
+    all = Solution.objects.filter(uid=uid).order_by('problem_id')
+    # 已通过题目
+    done = all.filter(result=4)
+    for problem in done.values('problem_id').distinct():
+        problem_id = problem['problem_id']
+        total = Solution.objects.filter(uid=uid, problem_id=problem_id)
+        done_list.append({
+            'problem_id': problem_id,
+            'submit': total.count(),
+            'accepted': total.filter(result=4).count()
+        })
+    # 未通过列表
+    not_done = all.exclude(problem_id__in=done.values_list('problem_id', flat=True))
+    for problem in not_done.values('problem_id').distinct():
+        problem_id = problem['problem_id']
+        total = Solution.objects.filter(uid=uid, problem_id=problem_id)
+        not_done_list.append({
+            'problem_id': problem_id,
+            'submit': total.count(),
+            'accepted': total.filter(result=4).count()
+        })
+    return {
+        'done_list': done_list,
+        'not_done_list': not_done_list
+    }
+
+
 class ProblemView(BaseListView):
     queryset = Problem.objects.all()
     serializer_class = ProblemSerializer
