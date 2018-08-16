@@ -156,7 +156,7 @@ class UserRegisterView(APIView):
 
         # 从loginlog表中查询验证码是否正确
         # select count(*) from loginlog where ip=xxx and captcha=xxx
-            loginlog = Loginlog.objects.get(ip=ip, captcha=params['captchacode'])
+            loginlog = Loginlog.objects.get(ip=ip, captcha=params['captchacode'].lower())
             loginlog.delete()
 
         # 限制登录账号为电子邮箱（检查user_id）

@@ -33,6 +33,7 @@ urlpatterns = [
     url('schools$', SchoolView.as_view()),
     url('problems$', ProblemView.as_view()),
     url('problems/detail', ProblemDetailView.as_view()),
+    url('problems/submit', ProblemSubmitView.as_view()),
     url('news$', NewsView.as_view()),
     url('feedbacks$', FeedbackView.as_view()),
     url('maintenance$', MaintenanceView.as_view()),

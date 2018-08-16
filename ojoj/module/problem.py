@@ -5,7 +5,7 @@ from django.db import OperationalError, DataError
 from django.utils import timezone
 from .core import BaseListView
 from ..utils import data_wrapper, get_params_from_post
-from ..models import Problem, Solution, Users, ProblemTag, Tags
+from ..models import Problem, Solution, Users, ProblemTag, Tags, SourceCode
 from ..serializers import ProblemSerializer, SolutionSerializer, ProblemDetailSerializer
 import json
 from json.decoder import JSONDecodeError
@@ -43,6 +43,51 @@ def get_problem_info(uid):
         'done_list': done_list,
         'not_done_list': not_done_list
     }
+
+
+class ProblemSubmitView(generics.GenericAPIView):
+
+    # 获取判题结果
+    def get(self, request):
+        try:
+            problem_id = request.GET['problem_id']
+            uid = request.GET['uid']
+            solution = Solution.objects.filter(uid=uid, problem_id=problem_id).order_by('-solution_id')
+            if solution.exists():
+                solution = solution[0]
+            else:
+                solution = None
+            data = SolutionSerializer(solution).data
+        except:
+            return Response(data_wrapper(msg=20001, success="false"))
+        return Response(data_wrapper(data=data, success="true"))
+
+    # 提交代码
+    def post(self, request):
+        namedict = {'uid': 20001, 'problem_id': 20001, 'protype': 20001, 'source': 20001, 'language': 20001}
+        params = get_params_from_post(request, namedict)
+        if params.pop('error'):
+            return Response(data_wrapper(msg=20001, success="false"))
+        try:
+            user = Users.objects.get(uid=params['uid'])
+            source = params.pop('source')
+            params['user_id'] = user.user_id
+            params['ip'] = request.META['REMOTE_ADDR']
+            params['in_date'] = timezone.now()
+            params['code_length'] = len(source)
+            # 做solution表
+            solution = Solution.objects.create(**params)
+            solution.save()
+            # 做source_code表
+            source_code = SourceCode.objects.create(solution_id=solution.solution_id,
+                                                    source=source)
+            source_code.save()
+            # 更新用户提交时间
+            user.last_submit = params['in_date']
+            user.save()
+        except:
+            return Response(data_wrapper(msg=20001, success="false"))
+        return Response(data_wrapper(success="true"))
 
 
 class ProblemView(BaseListView):
