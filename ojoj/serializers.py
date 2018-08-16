@@ -269,3 +269,10 @@ class AboutUsSerializer(serializers.ModelSerializer):
     class Meta:
         model = AboutUs
         fields = ('id', 'name', 'avatarurl', 'class_name', 'job')
+
+
+class RankUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Users
+        fields = ('uid', 'nick', 'signature', 'solved', 'submit')

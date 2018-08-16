@@ -44,6 +44,7 @@ urlpatterns = [
     url('articles/labels', LabelView.as_view()),
     url('tags$', TagView.as_view()),
     url('ranks$', RankView.as_view()),
+    url('rank_all', RankAllView.as_view()),
     url('states$', StateView.as_view()),
     url('about_us', AboutUsView.as_view()),
     # 页面URL

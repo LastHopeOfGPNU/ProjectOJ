@@ -35,10 +35,6 @@ class BaseListView(generics.GenericAPIView):
             pk = request.GET[self.pk_field]
             obj = self.get_queryset().get(pk=pk)
             obj.delete()
-        except KeyError:
-            return Response(data_wrapper(success="false", msg=20001))
-        except ObjectDoesNotExist:
-            return Response(data_wrapper(success="false", msg=20001))
-        except OperationalError:
+        except:
             return Response(data_wrapper(success="false", msg=20001))
         return Response(data_wrapper(success="true"))
