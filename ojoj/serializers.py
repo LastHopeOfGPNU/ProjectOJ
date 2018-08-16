@@ -26,11 +26,22 @@ class TeacherSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    school_name = serializers.SerializerMethodField()
+
+    def get_school_name(self, obj):
+        if obj.school == '0':
+            return "广东技术师范学院"
+        schools = School.objects.filter(school_id=-1)
+        try:
+            school = schools.get(id=obj.school)
+            return school.name
+        except:
+            return ""
 
     class Meta:
         model = Users
         fields = ('uid', 'user_id', 'nick', 'identity', 'avatarurl', 'reg_time', 'login_time',
-                  'email', 'sex', 'qq', 'signature')
+                  'email', 'sex', 'qq', 'signature', 'school_name')
 
 
 class StudentSerializer(serializers.ModelSerializer):

@@ -264,6 +264,12 @@ class UserDetailView(generics.GenericAPIView):
         try:
             uid = request.GET['uid']
             user = self.queryset.get(uid=uid)
+            serializer = self.get_serializer(user)
+            problem_info = get_problem_info(user.uid)
+            data = {
+                'user_info': serializer.data,
+                'problem_info': problem_info
+            }
         except:
             return Response(data_wrapper(msg=20001, success="false"))
-        return Response(data_wrapper(data=self.get_serializer(user).data, success="true"))
+        return Response(data_wrapper(data=data, success="true"))
