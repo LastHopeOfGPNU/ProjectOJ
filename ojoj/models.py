@@ -322,3 +322,15 @@ class ArticleLabel(models.Model):
     class Meta:
         managed = True
         db_table = 'article_label'
+
+
+class AboutUs(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=200)
+    avatarurl = models.CharField(db_column='avatarUrl', max_length=500, blank=True, null=True)
+    class_id = models.CharField(max_length=255, blank=True, null=True)
+    job = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'about_us'

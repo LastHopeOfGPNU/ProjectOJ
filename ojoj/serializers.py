@@ -243,3 +243,18 @@ class StateSerializer(serializers.ModelSerializer):
         model = Solution
         fields = ('code_length', 'in_date', 'language', 'memory', 'nick', 'problem_id', 'protype', 'result',
                   'solution_id', 'time', 'uid')
+
+
+class AboutUsSerializer(serializers.ModelSerializer):
+    class_name = serializers.SerializerMethodField()
+
+    def get_class_name(self, obj):
+        try:
+            cls = Class.objects.get(class_id=obj.class_id)
+            return cls.class_name
+        except:
+            return ""
+
+    class Meta:
+        model = AboutUs
+        fields = ('id', 'name', 'avatarurl', 'class_name', 'job')
