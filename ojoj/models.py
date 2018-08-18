@@ -334,3 +334,52 @@ class AboutUs(models.Model):
     class Meta:
         managed = True
         db_table = 'about_us'
+
+
+class Template(models.Model):
+    template_id = models.AutoField(primary_key=True)
+    uid = models.IntegerField()
+    name = models.CharField(max_length=300, blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'template'
+
+
+class QuestionType(models.Model):
+    question_type_id = models.AutoField(primary_key=True)
+    problem_type = models.IntegerField()
+    question_num = models.IntegerField()
+    type_bonus = models.FloatField()
+    template = models.ForeignKey(Template, on_delete=models.CASCADE)
+
+    class Meta:
+        managed = True
+        db_table = 'question_type'
+
+
+class CoursesQuiz(models.Model):
+    quiz_id = models.AutoField(primary_key=True)
+    quiz_name = models.CharField(max_length=255, blank=True, null=True)
+    quiz_manual = models.IntegerField(default=1)
+    course_id = models.IntegerField()
+    quiz_state = models.IntegerField(default=0)
+    quiz_date = models.DateTimeField()
+    quiz_duration = models.IntegerField()
+    template = models.ForeignKey('Template', models.DO_NOTHING, blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'courses_quiz'
+
+
+class CoursesQuizProblem(models.Model):
+    quiz_id = models.ForeignKey(CoursesQuiz, on_delete=models.CASCADE, db_column='quiz_id')
+    problem_id = models.IntegerField()
+    item_id = models.IntegerField()
+    problem_type = models.IntegerField()
+    problem_bonus = models.FloatField()
+
+    class Meta:
+        managed = True
+        db_table = 'courses_quiz_problem'

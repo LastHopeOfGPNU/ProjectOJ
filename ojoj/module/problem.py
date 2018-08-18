@@ -150,25 +150,23 @@ class ProblemDetailView(generics.GenericAPIView):
 
     def get(self, request):
         try:
-            uid = request.GET['uid']
+            uid = request.GET.get('uid', None)
             problem_id = request.GET['problem_id']
 
             problem = self.get_queryset().get(problem_id=problem_id)
             prob_ser = ProblemDetailSerializer(problem)
-            user = Users.objects.get(uid=uid)
-            # 取最新的solution
-            solution = Solution.objects.filter(uid=user.uid, problem_id=problem_id).order_by('-solution_id')
-            if solution.exists():
-                solution = solution[0]
-            else:
-                solution = None
+            solution = None
+            if uid:
+                user = Users.objects.get(uid=uid)
+                # 取最新的solution
+                solution = Solution.objects.filter(uid=user.uid, problem_id=problem_id).order_by('-solution_id')
+                if solution.exists():
+                    solution = solution[0]
             solu_ser = SolutionSerializer(solution)
             data = prob_ser.data
             data.update(solu_ser.data)
             return Response(data_wrapper(data=data, success="true"))
-        except KeyError:
-            return Response(data_wrapper(msg=20001, success="false"))
-        except ObjectDoesNotExist:
+        except:
             return Response(data_wrapper(msg=20001, success="false"))
 
     def put(self, request):

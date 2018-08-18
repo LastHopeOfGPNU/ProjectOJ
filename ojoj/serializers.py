@@ -276,3 +276,79 @@ class RankUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = ('uid', 'nick', 'signature', 'solved', 'submit')
+
+
+class QuestionTypeSerializer(serializers.ModelSerializer):
+    type = serializers.SerializerMethodField()
+    # 1填空题  2单选题 3编程题 4问答题 5判断题
+    type_dict = {1: '填空题', 2: '单选题', 3: '编程题', 4: '问答题', 5: '判断题'}
+
+    def get_type(self, obj):
+        return self.type_dict[obj.problem_type]
+
+    class Meta:
+        model = QuestionType
+        fields = ('type', 'question_num', 'type_bonus')
+
+
+class TemplateSerializer(serializers.ModelSerializer):
+    question_type = serializers.SerializerMethodField()
+
+    def get_question_type(self, obj):
+        types = obj.questiontype_set.all().order_by('problem_type')
+        return QuestionTypeSerializer(types, many=True).data
+
+    class Meta:
+        model = Template
+        fields = ('template_id', 'name', 'question_type')
+
+
+class ProblemTypeSerializer(serializers.ModelSerializer):
+    info = serializers.SerializerMethodField()
+
+    def get_info(self, obj):
+        title = obj.title
+        description = obj.description
+        problem_type = obj.problem_type
+        if problem_type == 1:  # 填空题
+            return {'title': title, 'description': description}
+        elif problem_type == 2:  # 单选题
+            options = obj.sample_input.split('||')
+            return {'title': title, 'optionA': options[0], 'optionB': options[1], 'optionC': options[2],
+                    'optionD': options[3]}
+        elif problem_type == 3:  # 编程题
+            return {'title': title, 'description': description, 'input': obj.input, 'output': obj.output,
+                    'sample_input': obj.sample_input, 'sample_output': obj.sample_output}
+        elif problem_type == 4:  # 问答题
+            return {'title': title, 'description': description}
+        elif problem_type == 5:  # 判断题
+            return {'title': title, 'description': description}
+
+    class Meta:
+        model = Problem
+        fields = ('problem_id', 'problem_type', 'info')
+
+
+class QuizProblemSerializer(serializers.ModelSerializer):
+    info = serializers.SerializerMethodField()
+
+    def get_info(self, obj):
+        problem = Problem.objects.get(problem_id=obj.problem_id)
+        return ProblemTypeSerializer(problem).data
+
+    class Meta:
+        model = CoursesQuizProblem
+        fields = ('item_id', 'problem_bonus', 'info')
+
+
+class QuizSerializer(serializers.ModelSerializer):
+    problem_info = serializers.SerializerMethodField()
+
+    def get_problem_info(self, obj):
+        problems = obj.coursesquizproblem_set.all().order_by('item_id')
+        data = QuizProblemSerializer(problems, many=True).data
+        return data
+
+    class Meta:
+        model = CoursesQuiz
+        fields = ('quiz_id', 'quiz_name', 'quiz_manual', 'quiz_state', 'quiz_date', 'quiz_duration', 'problem_info')
