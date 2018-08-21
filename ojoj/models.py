@@ -34,7 +34,7 @@ class Courses(models.Model):
     courses_name = models.CharField(max_length=100, blank=True, null=True)
     grade = models.IntegerField()
     term = models.IntegerField()
-    open = models.IntegerField()
+    open = models.IntegerField(default=1)
 
     class Meta:
         managed = True

@@ -15,6 +15,7 @@ from .module.rank import *
 from .module.state import *
 from .module.about_us import *
 from .module.quiz import *
+from .module.course import *
 from django.conf.urls import url
 
 app_name = 'ojoj'
@@ -51,6 +52,7 @@ urlpatterns = [
     url('quiz/templates', TemplateView.as_view()),
     url('quiz/problem', QuizProblemView.as_view()),
     url('quiz$', QuizView.as_view()),
+    url('courses', CourseView.as_view()),
     # 页面URL
     path('', views.index, name='index'),
 ]

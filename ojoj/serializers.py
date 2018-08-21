@@ -352,3 +352,10 @@ class QuizSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoursesQuiz
         fields = ('quiz_id', 'quiz_name', 'quiz_manual', 'quiz_state', 'quiz_date', 'quiz_duration', 'problem_info')
+
+
+class CourseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Courses
+        fields = ('courses_id', 'courses_name', 'grade', 'term')

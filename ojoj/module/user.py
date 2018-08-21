@@ -1,12 +1,11 @@
 from django.utils import timezone
 from django.core.validators import validate_email, ValidationError
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import OperationalError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics
-from ..models import Users, School
+from ..models import Users, School, Courses, CoursesClass, CoursesTeacher
 from ..models import Loginlog
 from ..serializers import UserSerializer,TeacherSerializer
 from ..utils import pwCheck, pwGen
@@ -227,11 +226,30 @@ class UserLoginView(generics.GenericAPIView):
         if msg != 10002:
             user = None
         serializer = self.get_serializer(user)
+        user_info = serializer.data
+        # 学生/教师的额外信息
+        if user.identity == '1':
+            additional = {
+                'class_name': user.class_id.class_name,
+                'grade': user.grade,
+                'course_num': CoursesClass.objects.filter(class_id=user.class_id).count()
+            }
+            user_info.update(additional)
+        elif user.identity == '2':
+            ct = CoursesTeacher.objects.filter(teacher_id=user.uid)
+            courses = Courses.objects.filter(courses_id__in=ct.values_list('courses_id', flat=True))
+            course_names = [course.courses_name for course in courses]
+            additional = {
+                'course_names': course_names
+            }
+            user_info.update(additional)
         problem_info = get_problem_info(user.uid)
         data = {
-            'user_info': serializer.data,
+            'user_info': user_info,
             'problem_info': problem_info
         }
+        # cookie入session
+        request.session['cookie'] = cookie
         return Response(data_wrapper(msg=msg, success=success, data=data))
 
 
