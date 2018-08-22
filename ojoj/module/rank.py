@@ -27,7 +27,7 @@ class RankView(GenericAPIView):
         # 获取日榜、月榜和总榜的开始时间
         # 总榜假设由2015-01-01开始
         now = timezone.now()
-        day = datetime.datetime(now.year, now.month, now.day, 0, 0, 0)
+        week = now - datetime.timedelta(days=now.isoweekday())
         month = datetime.datetime(now.year, now.month, 1, 0, 0, 0)
         all = datetime.datetime(2015, 1, 1, 0, 0, 0)
         # 由原OJ系统偷过来的神级SQL语句
@@ -36,11 +36,11 @@ class RankView(GenericAPIView):
         try:
             count = int(count)
             # 执行SQL语句获取排行
-            day_result = execute_raw_sql(sql % (day, now, count))  # 分别为（开始时间，结束时间，条数）
+            week_result = execute_raw_sql(sql % (week, now, count))  # 分别为（开始时间，结束时间，条数）
             month_result = execute_raw_sql(sql % (month, now, count))
             all_result = execute_raw_sql(sql % (all, now, count))
             data = {
-                'today_list': get_rank_list(day_result),
+                'week_list': get_rank_list(week_result),
                 'month_list': get_rank_list(month_result),
                 'all_list': get_rank_list(all_result)
             }
@@ -50,6 +50,12 @@ class RankView(GenericAPIView):
 
 
 class RankAllView(BaseListView):
-    queryset = Users.objects.all().order_by('-solved')
+    queryset = Users.objects.order_by('-solved')
     serializer_class = RankUserSerializer
 
+    def get_dataset(self, request):
+        nick = request.GET.get('nick', None)
+        dataset = self.queryset.all()
+        if nick:
+            dataset = dataset.filter(nick__contains=nick)
+        return dataset

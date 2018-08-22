@@ -125,13 +125,18 @@ class QuizProblemView(generics.GenericAPIView):
         try:
             tagids = json.loads(request.GET['tagids'])
             problem_type = request.GET['problem_type']
+            problem_num = request.GET.get('problem_num', None)
             dataset = self.queryset.filter(problem_type=problem_type)
             problem_set = self.queryset.none()
             for tagid in tagids:
                 problems = dataset.filter(tags__tagid=tagid)
                 problem_set = problem_set | problems
             problem_set = problem_set.order_by('problem_id')
-        except:
+            if problem_num:
+                problem_num = int(problem_num)
+                if problem_num < problem_set.count():
+                    problem_set = problem_set.order_by('?')[:problem_num]
+        except Exception as e:
             return Response(data_wrapper(msg=20001, success="false"))
         data = {
             'problems': self.get_serializer(problem_set, many=True).data,

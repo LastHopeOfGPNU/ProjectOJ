@@ -64,7 +64,7 @@ def get_params_from_post(request, namedict):
             ret[param] = value
         except KeyError:
             ret['error'] = namedict[param]
-            break
+            continue
     return ret
 
 def hashGen(password, salt):

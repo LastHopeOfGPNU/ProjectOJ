@@ -305,6 +305,14 @@ class TemplateSerializer(serializers.ModelSerializer):
 
 class ProblemTypeSerializer(serializers.ModelSerializer):
     info = serializers.SerializerMethodField()
+    tagnames = serializers.SerializerMethodField()
+    tagids = serializers.SerializerMethodField()
+
+    def get_tagnames(self, obj):
+        return [tag.tagname for tag in obj.tags.all()]
+
+    def get_tagids(self, obj):
+        return [tag.tagid for tag in obj.tags.all()]
 
     def get_info(self, obj):
         title = obj.title
@@ -314,11 +322,12 @@ class ProblemTypeSerializer(serializers.ModelSerializer):
             return {'title': title, 'description': description}
         elif problem_type == 2:  # 单选题
             options = obj.sample_input.split('||')
-            return {'title': title, 'optionA': options[0], 'optionB': options[1], 'optionC': options[2],
+            return {'title': title, 'description': description, 'optionA': options[0], 'optionB': options[1], 'optionC': options[2],
                     'optionD': options[3]}
         elif problem_type == 3:  # 编程题
             return {'title': title, 'description': description, 'input': obj.input, 'output': obj.output,
-                    'sample_input': obj.sample_input, 'sample_output': obj.sample_output}
+                    'sample_input': obj.sample_input, 'sample_output': obj.sample_output,
+                    'memory_limit': obj.memory_limit, 'time_limit': obj.time_limit}
         elif problem_type == 4:  # 问答题
             return {'title': title, 'description': description}
         elif problem_type == 5:  # 判断题
@@ -326,7 +335,8 @@ class ProblemTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Problem
-        fields = ('problem_id', 'problem_type', 'info')
+        fields = ('problem_id', 'problem_type', 'info', 'defunct', 'hint', 'source', 'in_date',
+                  'tagnames', 'tagids')
 
 
 class QuizProblemSerializer(serializers.ModelSerializer):
