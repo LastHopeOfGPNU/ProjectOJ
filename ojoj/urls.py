@@ -42,6 +42,7 @@ urlpatterns = [
     url('maintenance$', MaintenanceView.as_view()),
     url('contests$', ContestView.as_view()),
     url('contests/detail', ContestDetailView.as_view()),
+    url('contests/rank', ContestRankView.as_view()),
     url('articles$', ArticleView.as_view()),
     url('articles/labels', LabelView.as_view()),
     url('tags$', TagView.as_view()),

@@ -383,3 +383,18 @@ class CoursesQuizProblem(models.Model):
     class Meta:
         managed = True
         db_table = 'courses_quiz_problem'
+
+
+class ContestFinish(models.Model):
+    contest_finish_id = models.AutoField(primary_key=True)
+    contest_id = models.PositiveSmallIntegerField()
+    uid = models.PositiveSmallIntegerField()
+    finish = models.CharField(max_length=30)
+    submit = models.CharField(max_length=30)
+    all_time = models.PositiveIntegerField()
+    accept_num = models.PositiveSmallIntegerField()
+    submit_num = models.PositiveSmallIntegerField()
+
+    class Meta:
+        managed = True
+        db_table = 'contest_finish'

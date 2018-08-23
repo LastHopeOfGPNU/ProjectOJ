@@ -369,3 +369,18 @@ class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Courses
         fields = ('courses_id', 'courses_name', 'grade', 'term')
+
+
+class ContestRankSerializer(serializers.ModelSerializer):
+    nick = serializers.SerializerMethodField()
+
+    def get_nick(self, obj):
+        try:
+            user = Users.objects.get(uid=obj.uid)
+            return user.nick
+        except:
+            return ""
+
+    class Meta:
+        model = ContestFinish
+        fields = ('all_time', 'uid', 'nick', 'accept_num', 'submit_num', 'finish')

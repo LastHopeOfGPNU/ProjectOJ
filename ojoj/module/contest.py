@@ -8,14 +8,31 @@ import json
 from json import JSONDecodeError
 from .core import BaseListView
 from ..utils import get_params_from_post, data_wrapper
-from ..models import Contest, Problem, Users, ContestProblem
-from ..serializers import ContestSerializer, ContestDetailSerializer
+from ..models import Contest, Problem, Users, ContestProblem, Solution, ContestFinish
+from ..serializers import ContestSerializer, ContestDetailSerializer, ContestRankSerializer
 
 
 class ContestView(BaseListView):
     queryset = Contest.objects.all().order_by('-contest_id')
     serializer_class = ContestSerializer
     pk_field = 'contest_id'
+
+    def get_dataset(self, request):
+        contest_id = request.GET.get('contest_id', None)
+        type = request.GET.get('type', None)
+        state = request.GET.get('state', None)
+
+        try:
+            dataset = self.queryset.all()
+            if contest_id:
+                dataset = dataset.filter(contest_id=contest_id)
+            if type:
+                dataset = dataset.filter(type=type)
+            if state:
+                dataset = dataset.filter(state=state)
+            return dataset
+        except:
+            return dataset.none()
 
     def put(self, request):
         namedict = {'contest_id': 20001, 'type': 20001, 'title': 20001, 'begin': 20001, 'end': 20001,
@@ -83,8 +100,31 @@ class ContestDetailView(generics.GenericAPIView):
             # 竞赛信息
             contest_id = request.GET['contest_id']
             contest = self.queryset.get(contest_id=contest_id)
-        except KeyError:
+            data = self.get_serializer(contest).data
+            # 用户做题信息
+            uid = request.GET.get('uid', None)
+            if uid:
+                user = Users.objects.get(uid=uid)
+                user_info = {'accept_num': 0, 'accepted_problem': []}
+                for problem in contest.problem_set.all():
+                    if Solution.objects.filter(problem_id=problem.problem_id, uid=user.uid, result=4).exists():
+                        user_info['accept_num'] = user_info['accept_num'] + 1
+                        user_info['accepted_problem'].append(problem.problem_id)
+                data['user_info'] = user_info
+        except Exception as e:
+            print(e.__repr__())
             return Response(data_wrapper(msg=20001, success="false"))
-        except ObjectDoesNotExist:
-            return Response(data_wrapper(msg=20001, success="false"))
-        return Response(data_wrapper(success="true", data=self.get_serializer(contest).data))
+        return Response(data_wrapper(success="true", data=data))
+
+
+class ContestRankView(BaseListView):
+    queryset = ContestFinish.objects.all()
+    serializer_class = ContestRankSerializer
+
+    def get_dataset(self, request):
+        try:
+            contest_id = request.GET['contest_id']
+            dataset = self.queryset.filter(contest_id=contest_id).order_by('-accept_num', 'all_time')
+            return dataset
+        except:
+            return self.queryset.none()
