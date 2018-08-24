@@ -169,7 +169,10 @@ class ProblemDetailView(generics.GenericAPIView):
                 if solution.exists():
                     solution = solution[0]
                     solu_ser = SolutionSerializer(solution)
-                    data.update(solu_ser.data)
+                    solu_data = solu_ser.data
+                    if problem.problem_type == 1 or problem.problem_type == 2 or problem.problem_type == 4 or problem.problem_type == 5:
+                        solu_data.update({'sample_output': problem.sample_output})
+                    data.update(solu_data)
             return Response(data_wrapper(data=data, success="true"))
         except:
             return Response(data_wrapper(msg=20001, success="false"))

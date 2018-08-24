@@ -398,3 +398,31 @@ class ContestFinish(models.Model):
     class Meta:
         managed = True
         db_table = 'contest_finish'
+
+
+class CoursesExam(models.Model):
+    exam_id = models.AutoField(primary_key=True)
+    exam_name = models.CharField(max_length=100, blank=True, null=True)
+    create_time = models.DateTimeField()
+    stop_time = models.DateTimeField()
+    courses_id = models.ForeignKey(Courses, on_delete=models.CASCADE, db_column='courses_id')
+    uid = models.IntegerField()
+    all_num = models.IntegerField()
+    solve_num = models.IntegerField()
+
+    class Meta:
+        managed = True
+        db_table = 'courses_exam'
+
+
+class CoursesExamProblem(models.Model):
+    problem_id = models.IntegerField(blank=True, null=True)
+    exam_id = models.IntegerField(blank=True, null=True)
+    totolscore = models.IntegerField(blank=True, null=True)
+    accept_num = models.IntegerField()
+    submit_num = models.IntegerField()
+    rank = models.SmallIntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'courses_exam_problem'

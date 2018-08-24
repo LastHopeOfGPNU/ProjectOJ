@@ -55,6 +55,7 @@ urlpatterns = [
     url('quiz/templates', TemplateView.as_view()),
     url('quiz/problem', QuizProblemView.as_view()),
     url('quiz$', QuizView.as_view()),
+    url('courses/exams', CourseExamView.as_view()),
     url('courses', CourseView.as_view()),
     # 页面URL
     path('', views.index, name='index'),

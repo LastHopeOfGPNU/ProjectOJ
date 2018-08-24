@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.utils import timezone
 from .models import *
 
 
@@ -335,7 +336,7 @@ class ProblemTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Problem
-        fields = ('problem_id', 'problem_type', 'info', 'defunct', 'hint', 'source', 'in_date',
+        fields = ('problem_id', 'problem_type', 'info', 'defunct', 'source', 'in_date',
                   'tagnames', 'tagids')
 
 
@@ -384,3 +385,35 @@ class ContestRankSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContestFinish
         fields = ('all_time', 'uid', 'nick', 'accept_num', 'submit_num', 'finish')
+
+
+class CourseExamSerializer(serializers.ModelSerializer):
+    pass_student_count = serializers.SerializerMethodField()
+    problem_count = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+    student_count = serializers.SerializerMethodField()
+
+    def get_pass_student_count(self, obj):
+        return Solution.objects.filter(exam_id=obj.exam_id, problem_belong=1, result=4).count()
+
+    def get_problem_count(self, obj):
+        return CoursesExamProblem.objects.filter(exam_id=obj.exam_id).count()
+
+    def get_status(self, obj):
+        stop_time = obj.stop_time
+        if stop_time > timezone.now():
+            return 1
+        else:
+            return 0
+
+    def get_student_count(self, obj):
+        course = obj.courses_id
+        cls = Class.objects.filter(class_id__in=CoursesClass.objects.filter(courses_id=course).values_list('class_id', flat=True))
+        student_count = 0
+        for i in cls: student_count += i.studentnum
+        return student_count
+
+    class Meta:
+        model = CoursesExam
+        fields = ('exam_id', 'exam_name', 'create_time', 'stop_time', 'pass_student_count',
+                  'problem_count', 'status', 'student_count')
