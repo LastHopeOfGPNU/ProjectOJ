@@ -11,8 +11,10 @@ class CourseView(generics.GenericAPIView):
 
     def get(self, request):
         try:
-            cookie = request.session['cookie']
-            user = Users.objects.get(cookie=cookie)
+            # cookie = request.session['cookie']
+            # user = Users.objects.get(cookie=cookie)
+            uid = request.GET['uid']
+            user = Users.objects.get(uid=uid)
             if user.identity == '2':
                 ct = CoursesTeacher.objects.filter(teacher_id=user.uid)
                 courses = Courses.objects.filter(courses_id__in=ct.values_list('courses_id', flat=True)).order_by('courses_id')
@@ -30,8 +32,10 @@ class CourseView(generics.GenericAPIView):
         if params.pop('error'):
             return Response(data_wrapper(msg=20001, success="false"))
         try:
-            cookie = request.session['cookie']
-            teacher = Users.objects.get(cookie=cookie)
+            # cookie = request.session['cookie']
+            # teacher = Users.objects.get(cookie=cookie)
+            uid = request.POST['uid']
+            teacher = Users.objects.get(uid=uid)
             course = Courses.objects.create(**params)
             course.save()
             # 存入课程教师关系表
@@ -44,8 +48,10 @@ class CourseView(generics.GenericAPIView):
     def delete(self, request):
         try:
             courses_id = request.GET['courses_id']
-            cookie = request.session['cookie']
-            teacher = Users.objects.get(cookie=cookie)
+            # cookie = request.session['cookie']
+            # teacher = Users.objects.get(cookie=cookie)
+            uid = request.GET['uid']
+            teacher = Users.objects.get(uid=uid)
             ct = CoursesTeacher.objects.filter(teacher_id=teacher.uid, courses_id=courses_id)
             if not ct.exists():
                 return Response(data_wrapper(msg=20001, success="false"))

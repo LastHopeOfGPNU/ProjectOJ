@@ -99,7 +99,10 @@ class ContestDetailView(generics.GenericAPIView):
         try:
             # 竞赛信息
             contest_id = request.GET['contest_id']
+            password = request.GET['password']
             contest = self.queryset.get(contest_id=contest_id)
+            if password != contest.password:
+                return Response(data_wrapper(msg=60003, success="false"))
             data = self.get_serializer(contest).data
             # 用户做题信息
             uid = request.GET.get('uid', None)
