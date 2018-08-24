@@ -34,3 +34,20 @@ class LabelView(BaseListView):
             return self.queryset.none()
         except ValueError:
             return self.queryset.none()
+
+class ArticleIndexView(generics.GenericAPIView):
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializer
+
+    def get(self, request):
+        try:
+            type = request.GET.get('type', None)
+            count = int(request.GET.get('count', 4))
+            if type == 'latest':
+                articles = self.queryset.order_by('-publishtime')[:count]
+            else:
+                articles = self.queryset.order_by('-pvnum')[:count]
+            data = self.get_serializer(articles, many=True).data
+            return Response(data_wrapper(data=data, success="true"))
+        except:
+            return Response(data_wrapper(msg=20001, success="false"))

@@ -291,3 +291,21 @@ class UserDetailView(generics.GenericAPIView):
         except:
             return Response(data_wrapper(msg=20001, success="false"))
         return Response(data_wrapper(data=data, success="true"))
+
+
+class UserUploadImageView(generics.GenericAPIView):
+
+    def post(self, request):
+        try:
+            uid = request.POST['uid']
+            file = request.FILES['file']
+            user = Users.objects.get(uid=uid)
+            path = 'collected_static/ojoj/upload/image/'
+            filename = '%s%d%s' % (path, user.uid, os.path.splitext(file.name)[1])
+            print(os.getcwd(), filename)
+            with open(filename, 'wb') as img:
+                for line in file: img.write(line)
+            return Response(data_wrapper(data=filename, success="success"))
+        except Exception as e:
+            print(e.__repr__())
+            return Response(data_wrapper(msg=20001, success="false"))

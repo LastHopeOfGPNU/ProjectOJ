@@ -161,16 +161,15 @@ class ProblemDetailView(generics.GenericAPIView):
 
             problem = self.get_queryset().get(problem_id=problem_id)
             prob_ser = self.get_serializer(problem)
-            solution = None
+            data = prob_ser.data
             if uid:
                 user = Users.objects.get(uid=uid)
                 # 取最新的solution
                 solution = Solution.objects.filter(uid=user.uid, problem_id=problem_id).order_by('-solution_id')
                 if solution.exists():
                     solution = solution[0]
-            solu_ser = SolutionSerializer(solution)
-            data = prob_ser.data
-            data.update(solu_ser.data)
+                    solu_ser = SolutionSerializer(solution)
+                    data.update(solu_ser.data)
             return Response(data_wrapper(data=data, success="true"))
         except:
             return Response(data_wrapper(msg=20001, success="false"))
