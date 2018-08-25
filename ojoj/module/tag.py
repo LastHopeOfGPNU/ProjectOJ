@@ -26,7 +26,7 @@ class TagView(generics.GenericAPIView):
     def get(self, request):
         tag_tree = {}
         tag_dict = {}
-        parents = self.queryset.filter(pid=-1).order_by('tagid')
+        parents = self.queryset.filter(pid=0).order_by('tagid')
         for parent in parents:
             tag_tree[parent.tagid] = get_children_tree(parent)
         for tag in self.queryset.all().order_by('tagid'):

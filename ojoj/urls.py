@@ -35,7 +35,7 @@ urlpatterns = [
     url('students/upload', StudentFileView.as_view()),
     url('students/detail', StudentDetailView.as_view()),
     url('schools$', SchoolView.as_view()),
-    url('problems$', ProblemView.as_view()),
+    url('^problems$', ProblemView.as_view()),
     url('problems/detail', ProblemDetailView.as_view()),
     url('problems/submit', ProblemSubmitView.as_view()),
     url('news$', NewsView.as_view()),
@@ -55,6 +55,7 @@ urlpatterns = [
     url('quiz/templates', TemplateView.as_view()),
     url('quiz/problem', QuizProblemView.as_view()),
     url('quiz$', QuizView.as_view()),
+    url('courses/exams/problems', ExamProblemView.as_view()),
     url('courses/exams', CourseExamView.as_view()),
     url('courses', CourseView.as_view()),
     # 页面URL

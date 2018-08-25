@@ -63,6 +63,7 @@ class ProblemDealer:
         now = timezone.now()
         problem.title = params['title']
         problem.description = params['description']
+        problem.sample_output = params['sample_output']
         problem.in_date = now
         return problem
 
@@ -100,6 +101,7 @@ class ProblemDealer:
         # 添加4类题目（问答题）
         now = timezone.now()
         problem = Problem.objects.create(title=params['title'], description=params['description'],
+                                         sample_output=params['sample_output'],
                                          in_date=now, problem_type=4)
         return problem
 

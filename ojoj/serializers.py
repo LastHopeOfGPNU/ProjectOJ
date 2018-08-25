@@ -84,6 +84,13 @@ class ClassSerializer(serializers.ModelSerializer):
 
 class ProblemSerializer(serializers.ModelSerializer):
     tagnames = serializers.SerializerMethodField()
+    title = serializers.SerializerMethodField()
+
+    def get_title(self, obj):
+        if obj.title == 'null':
+            return obj.description
+        else:
+            return obj.title
 
     def get_tagnames(self, obj):
         return [tag.tagname for tag in obj.tags.all()]

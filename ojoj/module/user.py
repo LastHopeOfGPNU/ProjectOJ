@@ -305,6 +305,8 @@ class UserUploadImageView(generics.GenericAPIView):
             print(os.getcwd(), filename)
             with open(filename, 'wb') as img:
                 for line in file: img.write(line)
+            user.avatarurl = filename
+            user.save()
             return Response(data_wrapper(data=filename, success="success"))
         except Exception as e:
             print(e.__repr__())

@@ -95,11 +95,24 @@ class ExamProblemView(generics.GenericAPIView):
     queryset = CoursesExam.objects.all()
     serializer_class = CourseExamSerializer
 
+    def get_problem_data(self, problem, uid):
+        solutions = Solution.objects.filter(uid=uid, problem_id=problem.problem_id)
+        accept = solutions.filter(result=4).count()
+        submit = solutions.count()
+        data = {'problem_id': problem.problem_id, 'title': problem.title, 'problem_type': problem.problem_type,
+                'in_date': problem.in_date, 'accept': accept, 'submit': submit}
+        return data
+
     def get(self, request):
         try:
             exam_id = request.GET['exam_id']
             exam = self.queryset.get(exam_id=exam_id)
+            uid = request.GET['uid']
+            user = Users.objects.get(uid=uid)
             problems = Problem.objects.filter(problem_id__in=CoursesExamProblem.objects.filter(exam_id=exam.exam_id).values_list('problem_id', flat=True))
-
+            problem_list = [self.get_problem_data(problem, user.uid) for problem in problems]
+            data = self.get_serializer(exam).data
+            data.update({'problem_list': problem_list})
+            return Response(data_wrapper(data=data, success="true"))
         except:
             return Response(data_wrapper(msg=20001, success="false"))
