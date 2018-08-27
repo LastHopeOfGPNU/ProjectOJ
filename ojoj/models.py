@@ -426,3 +426,16 @@ class CoursesExamProblem(models.Model):
     class Meta:
         managed = True
         db_table = 'courses_exam_problem'
+
+
+class QuizDetail(models.Model):
+    uid = models.IntegerField()
+    quiz_id = models.IntegerField()
+    item_id = models.IntegerField()
+    problem_id = models.IntegerField()
+    user_answer = models.TextField()
+    score = models.IntegerField(default=0)
+
+    class Meta:
+        managed = True
+        db_table = 'quiz_detail'

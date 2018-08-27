@@ -54,6 +54,7 @@ urlpatterns = [
     url('about_us', AboutUsView.as_view()),
     url('quiz/templates', TemplateView.as_view()),
     url('quiz/problem', QuizProblemView.as_view()),
+    url('quiz/detail', QuizDetailView.as_view()),
     url('quiz$', QuizView.as_view()),
     url('courses/exams/problems', ExamProblemView.as_view()),
     url('courses/exams', CourseExamView.as_view()),

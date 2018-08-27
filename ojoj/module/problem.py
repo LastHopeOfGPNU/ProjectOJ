@@ -173,6 +173,8 @@ class ProblemDetailView(generics.GenericAPIView):
                     if problem.problem_type == 1 or problem.problem_type == 2 or problem.problem_type == 4 or problem.problem_type == 5:
                         solu_data.update({'sample_output': problem.sample_output})
                     data.update(solu_data)
+                elif user.identity == '3':
+                    data.update({'hint': problem.hint, 'sample_output': problem.sample_output})
             return Response(data_wrapper(data=data, success="true"))
         except:
             return Response(data_wrapper(msg=20001, success="false"))

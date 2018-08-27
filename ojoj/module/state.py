@@ -11,7 +11,7 @@ class StateView(BaseListView):
         problem_id = request.GET.get('problem_id', None)
         nick = request.GET.get('nick', None)
         result = request.GET.get('result', None)
-        dataset = self.get_queryset()
+        dataset = self.queryset.filter(protype=3)
 
         try:
             if problem_id:

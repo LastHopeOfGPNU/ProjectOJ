@@ -2,8 +2,8 @@ from rest_framework import generics
 from rest_framework.response import Response
 import json, datetime
 from ..utils import data_wrapper, get_params_from_post
-from ..models import Template, QuestionType, CoursesQuiz, CoursesQuizProblem, Problem
-from ..serializers import TemplateSerializer, QuizSerializer, ProblemTypeSerializer
+from ..models import *
+from ..serializers import *
 
 
 class TemplateView(generics.GenericAPIView):
@@ -143,3 +143,18 @@ class QuizProblemView(generics.GenericAPIView):
             'total': problem_set.count()
                 }
         return Response(data_wrapper(data=data, success="true"))
+
+
+class QuizDetailView(generics.GenericAPIView):
+    queryset = QuizDetail.objects.all()
+    serializer_class = QuizDetailSerializer
+
+    def get(self, request):
+        try:
+            uid = request.GET['uid']
+            quiz_id = request.GET['quiz_id']
+            items = self.queryset.filter(uid=uid, quiz_id=quiz_id).order_by('item_id')
+            data = self.get_serializer(items, many=True).data
+            return Response(data_wrapper(data=data, success="true"))
+        except:
+            return Response(data_wrapper(msg=20001, success="false"))

@@ -424,3 +424,10 @@ class CourseExamSerializer(serializers.ModelSerializer):
         model = CoursesExam
         fields = ('exam_id', 'exam_name', 'create_time', 'stop_time', 'pass_student_count',
                   'problem_count', 'status', 'student_count')
+
+
+class QuizDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = QuizDetail
+        fields = ('item_id', 'problem_id', 'user_answer', 'score')
