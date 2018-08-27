@@ -97,29 +97,32 @@ class ContestDetailView(generics.GenericAPIView):
 
     def get(self, request):
         try:
+            pwdFlag = True
             # 竞赛信息
             contest_id = request.GET['contest_id']
             password = request.GET.get('password', None)
             contest = self.queryset.get(contest_id=contest_id)
             data = self.get_serializer(contest).data
+            # 验证密码
+            if contest.password:
+                if password != contest.password:
+                    pwdFlag = False
             # 用户做题信息
             uid = request.GET.get('uid', None)
             if uid:
                 user = Users.objects.get(uid=uid)
                 # 暂时用来开给管理员
-                if user.identity != '3':
-                    if contest.password:
-                        if password != contest.password:
-                            return Response(data_wrapper(msg=60003, success="false"))
+                if user.identity == '3':
+                    pwdFlag = True
                 user_info = {'accept_num': 0, 'accepted_problem': []}
                 for problem in contest.problem_set.all():
                     if Solution.objects.filter(problem_id=problem.problem_id, uid=user.uid, result=4).exists():
                         user_info['accept_num'] = user_info['accept_num'] + 1
                         user_info['accepted_problem'].append(problem.problem_id)
                 data['user_info'] = user_info
-        except Exception as e:
-            print(e.__repr__())
+        except:
             return Response(data_wrapper(msg=20001, success="false"))
+        if not pwdFlag: return Response(data_wrapper(msg=60003, success="false"))
         return Response(data_wrapper(success="true", data=data))
 
 

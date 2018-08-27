@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.utils import timezone
+import json
 from .models import *
 
 
@@ -265,18 +266,17 @@ class StateSerializer(serializers.ModelSerializer):
 
 
 class AboutUsSerializer(serializers.ModelSerializer):
-    class_name = serializers.SerializerMethodField()
+    job = serializers.SerializerMethodField()
 
-    def get_class_name(self, obj):
+    def get_job(self, obj):
         try:
-            cls = Class.objects.get(class_id=obj.class_id)
-            return cls.class_name
+            return json.loads(obj.job)
         except:
             return ""
 
     class Meta:
         model = AboutUs
-        fields = ('id', 'name', 'avatarurl', 'class_name', 'job')
+        fields = ('id', 'name', 'avatarurl', 'description', 'job', 'grade')
 
 
 class RankUserSerializer(serializers.ModelSerializer):

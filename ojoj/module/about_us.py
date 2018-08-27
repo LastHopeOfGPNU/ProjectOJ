@@ -6,12 +6,12 @@ from ..utils import get_params_from_post, data_wrapper
 
 
 class AboutUsView(BaseListView):
-    queryset = AboutUs.objects.all().order_by('id')
+    queryset = AboutUs.objects.all().order_by('grade')
     serializer_class = AboutUsSerializer
     pk_field = 'id'
 
     def post(self, request):
-        namedict = {'name': 20001, 'avatarurl': 20001, 'class_id': 20001, 'job': 20001}
+        namedict = {'name': 20001, 'avatarurl': 20001, 'description': 20001, 'job': 20001, 'grade': 20001}
         params = get_params_from_post(request, namedict)
         if params.pop('error'):
             return Response(data_wrapper(msg=20001, success="false"))
@@ -23,7 +23,7 @@ class AboutUsView(BaseListView):
         return Response(data_wrapper(data=self.get_serializer(about_us).data, success="true"))
 
     def put(self, request):
-        namedict = {'id': 20001, 'name': 20001, 'avatarurl': 20001, 'class_id': 20001, 'job': 20001}
+        namedict = {'id': 20001, 'name': 20001, 'avatarurl': 20001, 'description': 20001, 'job': 20001, 'grade': 20001}
         params = get_params_from_post(request, namedict)
         if params.pop('error'):
             return Response(data_wrapper(msg=20001, success="false"))
