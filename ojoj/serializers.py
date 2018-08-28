@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.utils import timezone
-import json
+import json, datetime
 from .models import *
 
 
@@ -348,28 +348,37 @@ class ProblemTypeSerializer(serializers.ModelSerializer):
 
 
 class QuizProblemSerializer(serializers.ModelSerializer):
-    info = serializers.SerializerMethodField()
+    problem = serializers.SerializerMethodField()
 
-    def get_info(self, obj):
+    def get_problem(self, obj):
         problem = Problem.objects.get(problem_id=obj.problem_id)
         return ProblemTypeSerializer(problem).data
 
     class Meta:
         model = CoursesQuizProblem
-        fields = ('item_id', 'problem_bonus', 'info')
+        fields = ('item_id', 'problem_bonus', 'problem')
 
 
 class QuizSerializer(serializers.ModelSerializer):
-    problem_info = serializers.SerializerMethodField()
+    quiz_state = serializers.SerializerMethodField()
 
-    def get_problem_info(self, obj):
-        problems = obj.coursesquizproblem_set.all().order_by('item_id')
-        data = QuizProblemSerializer(problems, many=True).data
-        return data
+    def get_quiz_state(self, obj):
+        try:
+            # 考试状态 (0.未进行 1.进行中 2.等待批阅 3.已公布成绩) 默认为0
+            quiz_date = obj.quiz_date
+            quiz_duration = obj.quiz_duration
+            now = timezone.now()
+            end = quiz_date + datetime.timedelta(minutes=int(quiz_duration))
+            if now > quiz_date and now < end:
+                obj.quiz_state = 1
+                obj.save()
+            return obj.quiz_state
+        except:
+            return obj.quiz_state
 
     class Meta:
         model = CoursesQuiz
-        fields = ('quiz_id', 'quiz_name', 'quiz_manual', 'quiz_state', 'quiz_date', 'quiz_duration', 'problem_info')
+        fields = ('quiz_id', 'quiz_name', 'quiz_manual', 'quiz_state', 'quiz_date', 'quiz_duration')
 
 
 class CourseSerializer(serializers.ModelSerializer):

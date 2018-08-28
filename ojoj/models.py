@@ -363,7 +363,7 @@ class CoursesQuiz(models.Model):
     quiz_id = models.AutoField(primary_key=True)
     quiz_name = models.CharField(max_length=255, blank=True, null=True)
     quiz_manual = models.IntegerField(default=1)
-    course_id = models.IntegerField()
+    courses_id = models.IntegerField()
     quiz_state = models.IntegerField(default=0)
     quiz_date = models.DateTimeField()
     quiz_duration = models.IntegerField()

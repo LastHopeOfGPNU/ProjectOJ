@@ -72,7 +72,7 @@ class TemplateView(generics.GenericAPIView):
         return Response(data_wrapper(success="true"))
 
 
-class QuizView(generics.GenericAPIView):
+class PaperView(generics.GenericAPIView):
     queryset = CoursesQuiz.objects.all()
     serializer_class = QuizSerializer
 
@@ -80,14 +80,34 @@ class QuizView(generics.GenericAPIView):
         try:
             quiz_id = request.GET['quiz_id']
             quiz = self.queryset.get(quiz_id=quiz_id)
+            data = self.get_serializer(quiz).data
+            problems = quiz.coursesquizproblem_set.all().order_by('item_id')
+            problem_info = QuizProblemSerializer(problems, many=True).data
+            data.update({'problem_info': problem_info})
+            return Response(data_wrapper(data=data, success="true"))
         except:
             return Response(data_wrapper(msg=20001, success="false"))
-        data = self.serializer_class(quiz).data
+
+
+class QuizView(generics.GenericAPIView):
+    queryset = CoursesQuiz.objects.all()
+    serializer_class = QuizSerializer
+
+    def get(self, request):
+        try:
+            courses_id = request.GET['courses_id']
+            quiz = self.queryset.filter(courses_id=courses_id).order_by('-quiz_date')
+        except:
+            return Response(data_wrapper(msg=20001, success="false"))
+        data = self.serializer_class(quiz, many=True).data
         return Response(data_wrapper(data=data, success="true"))
+
+    def get_problem_info(self, problem):
+        return QuizProblemSerializer(problem).data
 
     def post(self, request):
         namedict = {'quiz_name': 20001, 'quiz_date': 20001, 'quiz_duration': 20001,
-                    'quiz_manual': 20001, 'course_id': 20001, 'template_id': 20001,
+                    'quiz_manual': 20001, 'courses_id': 20001, 'template_id': 20001,
                     'problem_ids': 20001, 'preview': 20001}
         params = get_params_from_post(request, namedict)
         if params.pop('error'):
@@ -100,6 +120,7 @@ class QuizView(generics.GenericAPIView):
             params['quiz_date'] = datetime.datetime.strptime(params['quiz_date'], "%Y-%m-%d %H:%M:%S")
             courses_quiz = CoursesQuiz.objects.create(**params)
             courses_quiz.save()
+            problem_info = []
             for i, problem_id in enumerate(problem_ids):
                 problem = Problem.objects.get(problem_id=problem_id)
                 type = template.questiontype_set.get(problem_type=problem.problem_type)
@@ -109,12 +130,15 @@ class QuizView(generics.GenericAPIView):
                                                                 problem_type=problem.problem_type,
                                                                 problem_bonus=type.type_bonus/type.question_num)
                 quiz_problem.save()
+                problem_info.append(self.get_problem_info(quiz_problem))
+            data = self.get_serializer(courses_quiz).data
+            data.update({'problem_info': problem_info})
+            return Response(data_wrapper(data=data, success="true"))
         except:
             return Response(data_wrapper(msg=20001, success="false"))
-        data = self.get_serializer(courses_quiz).data
-        if preview == "true":
-            courses_quiz.delete()
-        return Response(data_wrapper(data=data, success="true"))
+        finally:
+            if preview == "true":
+                courses_quiz.delete()
 
 
 class QuizProblemView(generics.GenericAPIView):
