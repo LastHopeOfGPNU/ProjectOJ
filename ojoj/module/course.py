@@ -1,5 +1,7 @@
 from rest_framework import generics
 from rest_framework.response import Response
+from django.utils import timezone
+import datetime, json
 from ..models import *
 from ..serializers import CourseSerializer, CourseExamSerializer
 from ..utils import get_params_from_post, data_wrapper
@@ -74,6 +76,56 @@ class CourseExamView(generics.GenericAPIView):
     queryset = CoursesExam.objects.all()
     serializer_class = CourseExamSerializer
 
+    def delete(self, request):
+        try:
+            exam_id = request.GET['exam_id']
+            exam = self.queryset.get(exam_id=exam_id)
+            exam.stop_time = datetime.datetime.strptime("2015-1-1 00:00:00", "%Y-%m-%d %H:%M:%S")
+            exam.save()
+            return Response(data_wrapper(success="true"))
+        except:
+            return Response(data_wrapper(msg=20001, success="false"))
+
+    def put(self, request):
+        namedict = {'exam_id': 20001, 'exam_name': 20001, 'stop_time': 20001}
+        params = get_params_from_post(request, namedict)
+        if params.pop('error'):
+            return Response(data_wrapper(msg=20001, success="false"))
+        try:
+            exam = self.queryset.get(exam_id=params.pop('exam_id'))
+            params['stop_time'] = datetime.datetime.strptime(params['stop_time'], "%Y-%m-%d %H:%M:%S")
+            for key, value in params.items():
+                setattr(exam, key, value)
+            exam.save()
+            data = self.get_serializer(exam).data
+            return Response(data_wrapper(data=data, success="true"))
+        except Exception as e:
+            print(e.__repr__())
+            return Response(data_wrapper(msg=20001, success="false"))
+
+    def post(self, request):
+        namedict = {'exam_name': 20001, 'stop_time': 20001, 'courses_id': 20001,
+                    'uid': 20001, 'problem_list': 20001}
+        params = get_params_from_post(request, namedict)
+        if params.pop('error'):
+            return Response(data_wrapper(msg=20001, success="false"))
+        try:
+            params['create_time'] = timezone.now()
+            params['stop_time'] = datetime.datetime.strptime(params['stop_time'], "%Y-%m-%d %H:%M:%S")
+            params['courses_id'] = Courses.objects.get(courses_id=params['courses_id'])
+            user = Users.objects.get(uid=params['uid'])
+            problem_list = json.loads(params.pop('problem_list'))
+            exam = self.queryset.create(**params)
+            exam.save()
+            for problem_id in problem_list:
+                problem = Problem.objects.get(problem_id=problem_id)
+                CoursesExamProblem.objects.create(problem_id=problem.problem_id, exam_id=exam.exam_id).save()
+            data = self.get_serializer(exam).data
+            return Response(data_wrapper(data=data, success="true"))
+        except:
+            return Response(data_wrapper(msg=20001, success="false"))
+
+
     def get(self, request):
         try:
             uid = request.GET['uid']
@@ -109,10 +161,39 @@ class ExamProblemView(generics.GenericAPIView):
             exam = self.queryset.get(exam_id=exam_id)
             uid = request.GET['uid']
             user = Users.objects.get(uid=uid)
-            problems = Problem.objects.filter(problem_id__in=CoursesExamProblem.objects.filter(exam_id=exam.exam_id).values_list('problem_id', flat=True))
+            problems = Problem.objects.filter(problem_id__in=CoursesExamProblem.objects.filter(exam_id=exam.exam_id).values_list('problem_id', flat=True)).order_by('problem_id')
             problem_list = [self.get_problem_data(problem, user.uid) for problem in problems]
             data = self.get_serializer(exam).data
             data.update({'problem_list': problem_list})
             return Response(data_wrapper(data=data, success="true"))
+        except:
+            return Response(data_wrapper(msg=20001, success="false"))
+
+    def post(self, request):
+        namedict = {'exam_id': 20001, 'problem_id': 20001}
+        params = get_params_from_post(request, namedict)
+        if params.pop('error'):
+            return Response(data_wrapper(msg=20001, success="false"))
+        try:
+            exam = self.queryset.get(exam_id=params['exam_id'])
+            problem = Problem.objects.get(problem_id=params['problem_id'])
+            cep = CoursesExamProblem.objects.filter(exam_id=exam.exam_id, problem_id=problem.problem_id)
+            if cep.exists():
+                return Response(data_wrapper(success="true"))
+            cep = CoursesExamProblem.objects.create(exam_id=exam.exam_id, problem_id=problem.problem_id)
+            cep.save()
+            return Response(data_wrapper(success="true"))
+        except:
+            return Response(data_wrapper(msg=20001, success="false"))
+
+    def delete(self, request):
+        try:
+            exam_id = request.GET['exam_id']
+            problem_id = request.GET['problem_id']
+            exam = self.queryset.get(exam_id=exam_id)
+            problem = Problem.objects.get(problem_id=problem_id)
+            cep = CoursesExamProblem.objects.filter(exam_id=exam.exam_id, problem_id=problem.problem_id)
+            cep.delete()
+            return Response(data_wrapper(success="true"))
         except:
             return Response(data_wrapper(msg=20001, success="false"))

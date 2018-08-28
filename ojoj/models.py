@@ -408,8 +408,8 @@ class CoursesExam(models.Model):
     stop_time = models.DateTimeField()
     courses_id = models.ForeignKey(Courses, on_delete=models.CASCADE, db_column='courses_id')
     uid = models.IntegerField()
-    all_num = models.IntegerField()
-    solve_num = models.IntegerField()
+    all_num = models.IntegerField(default=0)
+    solve_num = models.IntegerField(default=0)
 
     class Meta:
         managed = True
@@ -419,10 +419,10 @@ class CoursesExam(models.Model):
 class CoursesExamProblem(models.Model):
     problem_id = models.IntegerField(blank=True, null=True)
     exam_id = models.IntegerField(blank=True, null=True)
-    totolscore = models.IntegerField(blank=True, null=True)
-    accept_num = models.IntegerField()
-    submit_num = models.IntegerField()
-    rank = models.SmallIntegerField(blank=True, null=True)
+    totolscore = models.IntegerField(blank=True, null=True, default=0)
+    accept_num = models.IntegerField(default=0)
+    submit_num = models.IntegerField(default=0)
+    rank = models.SmallIntegerField(blank=True, null=True, default=None)
 
     class Meta:
         managed = True
