@@ -439,4 +439,4 @@ class QuizDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = QuizDetail
-        fields = ('item_id', 'problem_id', 'user_answer', 'score')
+        fields = ('item_id', 'problem_id', 'user_answer')

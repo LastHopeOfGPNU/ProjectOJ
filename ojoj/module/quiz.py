@@ -1,6 +1,7 @@
 from rest_framework import generics
 from rest_framework.response import Response
 import json, datetime
+from .core import BaseListView
 from ..utils import data_wrapper, get_params_from_post
 from ..models import *
 from ..serializers import *
@@ -141,11 +142,11 @@ class QuizView(generics.GenericAPIView):
                 courses_quiz.delete()
 
 
-class QuizProblemView(generics.GenericAPIView):
+class QuizProblemView(BaseListView):
     queryset = Problem.objects.all()
     serializer_class = ProblemTypeSerializer
 
-    def get(self, request):
+    def get_dataset(self, request):
         try:
             tagids = json.loads(request.GET['tagids'])
             problem_type = request.GET['problem_type']
@@ -160,13 +161,9 @@ class QuizProblemView(generics.GenericAPIView):
                 problem_num = int(problem_num)
                 if problem_num < problem_set.count():
                     problem_set = problem_set.order_by('?')[:problem_num]
-        except Exception as e:
-            return Response(data_wrapper(msg=20001, success="false"))
-        data = {
-            'problems': self.get_serializer(problem_set, many=True).data,
-            'total': problem_set.count()
-                }
-        return Response(data_wrapper(data=data, success="true"))
+            return problem_set
+        except:
+            return self.queryset.none()
 
 
 class QuizDetailView(generics.GenericAPIView):
@@ -180,5 +177,19 @@ class QuizDetailView(generics.GenericAPIView):
             items = self.queryset.filter(uid=uid, quiz_id=quiz_id).order_by('item_id')
             data = self.get_serializer(items, many=True).data
             return Response(data_wrapper(data=data, success="true"))
+        except:
+            return Response(data_wrapper(msg=20001, success="false"))
+
+    def post(self, request):
+        namedict = {'uid': 20001, 'quiz_id': 20001, 'answers': 20001}
+        params = get_params_from_post(request, namedict)
+        if params.pop('error'):
+            return Response(data_wrapper(msg=20001, success="false"))
+        try:
+            # answers格式[item_id, problem_id, answer]
+            answers = json.loads(params.pop('answers'))
+            # 判断考试是否已结束
+            quiz = CoursesQuiz.objects.get(quiz_id=params['quiz_id'])
+
         except:
             return Response(data_wrapper(msg=20001, success="false"))
