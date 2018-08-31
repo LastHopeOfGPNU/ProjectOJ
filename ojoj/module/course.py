@@ -115,6 +115,9 @@ class CourseExamView(generics.GenericAPIView):
             params['courses_id'] = Courses.objects.get(courses_id=params['courses_id'])
             user = Users.objects.get(uid=params['uid'])
             problem_list = json.loads(params.pop('problem_list'))
+            # 不允许无问题的测验
+            if not len(problem_list):
+                return Response(data_wrapper(msg=50009, success="false"))
             exam = self.queryset.create(**params)
             exam.save()
             for problem_id in problem_list:

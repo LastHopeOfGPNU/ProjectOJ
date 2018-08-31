@@ -1,9 +1,22 @@
 from django.utils import timezone
+import json
 from ..models import Problem
 
 class CodeJudge:
     def judge(self, quiz_detail, problem):
         return False
+
+
+class FillJudge:
+    def judge(self, quiz_detail, problem):
+        try:
+            answer = json.loads(quiz_detail.user_answer)
+            sample_output = json.loads(problem.sample_output)
+            for i, fill in enumerate(answer):
+                if fill != sample_output[i]: return False
+            return True
+        except:
+            return False
 
 
 class GenericJudge:
@@ -59,7 +72,7 @@ class ProblemDealer:
         problem.title = params['title']
         problem.description = params['description']
         problem.hint = params['hint']
-        problem.sample_output = params['sample_output']
+        problem.sample_output = json.loads(params['sample_output'])
         problem.in_date = now
         return problem
 
@@ -101,6 +114,7 @@ class ProblemDealer:
     def add_type_fill(self, params):
         # 添加1类题目（填空题）
         now = timezone.now()
+        params['sample_output'] = json.loads(params['sample_output'])
         problem = Problem.objects.create(hint=params['hint'], title=params['title'], description=params['description'],
                                          sample_output=params['sample_output'], in_date=now, problem_type=1)
         return problem

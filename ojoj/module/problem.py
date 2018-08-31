@@ -202,9 +202,11 @@ class ProblemDetailView(generics.GenericAPIView):
                 tag = ProblemTag.objects.create(problem_id=problem, tagid=tagid)
                 tag.save()
             problem.save()
+            data = self.get_serializer(problem).data
+            data.update({'hint': problem.hint, 'sample_output': problem.sample_output})
+            return Response(data_wrapper(data=data, success="true"))
         except:
             return Response(data_wrapper(success="false", msg=20001))
-        return Response(data_wrapper(data=self.get_serializer(problem).data, success="true"))
 
     def post(self, request):
         namedict = {'problem_type': 20001, 'title': 20001, 'time_limit': 20001,
@@ -218,12 +220,16 @@ class ProblemDetailView(generics.GenericAPIView):
             tagids = json.loads(params.pop('tagids'))
             problem_type = int(params['problem_type'])
             problem = self.dealer.create(params, problem_type)
+            if params.get('defunct', None):
+                problem.defunct = params['defunct']
             for id in tagids:
                 tagid = Tags.objects.get(tagid=id)
                 tag = ProblemTag.objects.create(problem_id=problem, tagid=tagid)
                 tag.save()
             problem.save()
+            data = self.get_serializer(problem).data
+            data.update({'hint': problem.hint, 'sample_output': problem.sample_output})
+            return Response(data_wrapper(data=data, success="true"))
         except Exception as e:
             return Response(data_wrapper(success="false", msg=20001))
-        return Response(data_wrapper(data=self.get_serializer(problem).data, success="true"))
 
