@@ -372,6 +372,9 @@ class QuizSerializer(serializers.ModelSerializer):
             if now > quiz_date and now < end:
                 obj.quiz_state = 1
                 obj.save()
+            elif now > end:
+                obj.quiz_state = 2
+                obj.save()
             return obj.quiz_state
         except:
             return obj.quiz_state
@@ -440,3 +443,15 @@ class QuizDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizDetail
         fields = ('item_id', 'problem_id', 'user_answer')
+
+
+class QuizJudgeSerializer(serializers.ModelSerializer):
+    sample_output = serializers.SerializerMethodField()
+
+    def get_sample_output(self, obj):
+        problem = Problem.objects.get(problem_id=obj.problem_id)
+        return problem.sample_output
+
+    class Meta:
+        model = QuizDetail
+        fields = ('item_id', 'problem_id', 'user_answer', 'sample_output', 'score')

@@ -434,9 +434,22 @@ class QuizDetail(models.Model):
     quiz_id = models.IntegerField()
     item_id = models.IntegerField()
     problem_id = models.IntegerField()
-    user_answer = models.TextField()
-    score = models.IntegerField(default=0)
+    user_answer = models.TextField(default='')
+    score = models.FloatField(default=0)
 
     class Meta:
         managed = True
         db_table = 'quiz_detail'
+
+
+class QuizSession(models.Model):
+    uid = models.IntegerField()
+    quiz_id = models.ForeignKey(CoursesQuiz, on_delete=models.CASCADE, db_column='quiz_id')
+    mark = models.FloatField(default=0)
+    auto_mark = models.FloatField(default=0)
+    rank = models.IntegerField(default=0)
+    finished = models.IntegerField(default=0)
+
+    class Meta:
+        managed = True
+        db_table = 'quiz_session'

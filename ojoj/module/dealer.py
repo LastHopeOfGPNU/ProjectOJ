@@ -1,6 +1,28 @@
 from django.utils import timezone
 from ..models import Problem
 
+class CodeJudge:
+    def judge(self, quiz_detail, problem):
+        return False
+
+
+class GenericJudge:
+    def judge(self, quiz_detail, problem):
+        return True if quiz_detail.user_answer == problem.sample_output else False
+
+class ProblemJudge:
+    def get_judge_class(self, problem_type):
+        if problem_type != 3:
+            return GenericJudge()
+        else:
+            return CodeJudge()
+
+    def judge(self, quiz_detail):
+        problem = Problem.objects.get(problem_id=quiz_detail.problem_id)
+        return self.get_judge_class(problem.problem_type).judge(quiz_detail, problem)
+
+
+
 class ProblemDealer:
 
     def edit(self, params, problem_type):

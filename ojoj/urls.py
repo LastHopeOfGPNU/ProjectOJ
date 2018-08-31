@@ -56,6 +56,8 @@ urlpatterns = [
     url('quiz/problem', QuizProblemView.as_view()),
     url('quiz/detail', QuizDetailView.as_view()),
     url('quiz/paper', PaperView.as_view()),
+    url('quiz/auto_judge', QuizAutoJudgeView.as_view()),
+    url('quiz/manual_judge', QuizManualJudge.as_view()),
     url('quiz$', QuizView.as_view()),
     url('courses/exams/problems', ExamProblemView.as_view()),
     url('courses/exams', CourseExamView.as_view()),

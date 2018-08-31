@@ -2,6 +2,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 import json, datetime
 from .core import BaseListView
+from .dealer import *
 from ..utils import data_wrapper, get_params_from_post
 from ..models import *
 from ..serializers import *
@@ -111,6 +112,8 @@ class QuizView(generics.GenericAPIView):
                     'quiz_manual': 20001, 'courses_id': 20001, 'template_id': 20001,
                     'problem_ids': 20001, 'preview': 20001}
         params = get_params_from_post(request, namedict)
+        # 创建deleteFlag以防删除courses_quiz时实例还没创建
+        deleteFlag = False
         if params.pop('error'):
             return Response(data_wrapper(msg=20001, success="false"))
         try:
@@ -119,8 +122,11 @@ class QuizView(generics.GenericAPIView):
             preview = params.pop('preview', None)
             params['template'] = template
             params['quiz_date'] = datetime.datetime.strptime(params['quiz_date'], "%Y-%m-%d %H:%M:%S")
+            # 创建考试主体
             courses_quiz = CoursesQuiz.objects.create(**params)
             courses_quiz.save()
+            deleteFlag = True
+            # 创建考试题目（courses_quiz_problem表）
             problem_info = []
             for i, problem_id in enumerate(problem_ids):
                 problem = Problem.objects.get(problem_id=problem_id)
@@ -132,14 +138,18 @@ class QuizView(generics.GenericAPIView):
                                                                 problem_bonus=type.type_bonus/type.question_num)
                 quiz_problem.save()
                 problem_info.append(self.get_problem_info(quiz_problem))
+            # 返回数据
             data = self.get_serializer(courses_quiz).data
             data.update({'problem_info': problem_info})
             return Response(data_wrapper(data=data, success="true"))
         except:
+            if deleteFlag:
+                courses_quiz.delete()
+                deleteFlag = False
             return Response(data_wrapper(msg=20001, success="false"))
         finally:
             if preview == "true":
-                courses_quiz.delete()
+                if deleteFlag: courses_quiz.delete()
 
 
 class QuizProblemView(BaseListView):
@@ -171,6 +181,8 @@ class QuizDetailView(generics.GenericAPIView):
     serializer_class = QuizDetailSerializer
 
     def get(self, request):
+        # 获取用户考试每道题目答案
+        # 用于保存回显
         try:
             uid = request.GET['uid']
             quiz_id = request.GET['quiz_id']
@@ -181,15 +193,138 @@ class QuizDetailView(generics.GenericAPIView):
             return Response(data_wrapper(msg=20001, success="false"))
 
     def post(self, request):
-        namedict = {'uid': 20001, 'quiz_id': 20001, 'answers': 20001}
+        namedict = {'uid': 20001, 'quiz_id': 20001, 'answers': 20001, 'submit': 20001}
         params = get_params_from_post(request, namedict)
         if params.pop('error'):
             return Response(data_wrapper(msg=20001, success="false"))
         try:
-            # answers格式[item_id, problem_id, answer]
             answers = json.loads(params.pop('answers'))
-            # 判断考试是否已结束
+            # 判断考试是否已结束 或 学生已提交试卷
+            # 考试状态 (0.未进行 1.进行中 2.等待批阅 3.已公布成绩)
+            user = Users.objects.get(uid=params['uid'])
             quiz = CoursesQuiz.objects.get(quiz_id=params['quiz_id'])
+            quiz_data = QuizSerializer(quiz).data
+            # 通过session判断是否已提交，没有session则创建
+            quiz_session = QuizSession.objects.filter(uid=user.uid, quiz_id=quiz)
+            if quiz_session.exists():
+                quiz_session = quiz_session[0]
+            else:
+                quiz_session = QuizSession.objects.create(uid=user.uid, quiz_id=quiz)
+                quiz_session.save()
+            if quiz_data['quiz_state'] != 1:
+                return Response(data_wrapper(msg=70000, success="false"))
+            if quiz_session.finished == 1:
+                return Response(data_wrapper(msg=70001, success="false"))
+            # 保存或提交试卷
+            # 先判断之前是否已有保存
+            # answers格式[item_id, problem_id, answer]
+            for answer in answers:
+                item_id = answer[0]
+                problem_id = answer[1]
+                ans = answer[2]
+                record = self.queryset.filter(item_id=item_id, problem_id=problem_id)
+                if not record.exists():
+                    record = self.queryset.create(uid=user.uid, quiz_id=quiz.quiz_id, problem_id=problem_id)
+                    record.save()
+                else:
+                    record = record[0]
+                if record.user_answer != ans:
+                    record.user_answer = ans
+                    record.save()
+            if params['submit'] == "true":
+                quiz_session.finished = 1
+                quiz_session.save()
+            return Response(data_wrapper(success="true"))
+        except Exception as e:
+            print(e.__repr__())
+            return Response(data_wrapper(msg=20001, success="false"))
 
-        except:
+
+class QuizAutoJudgeView(generics.GenericAPIView):
+    queryset = QuizDetail.objects.all()
+    serializer_class = QuizJudgeSerializer
+
+    def get(self, request):
+        try:
+            quiz_id = request.GET['quiz_id']
+            uid = request.GET['uid']
+            quiz_detail = self.queryset.filter(uid=uid, quiz_id=quiz_id).order_by('item_id')
+            judge = ProblemJudge()
+            mark = 0
+            for item in quiz_detail:
+                problem = Problem.objects.get(problem_id=item.problem_id)
+                quiz_problem = CoursesQuizProblem.objects.get(quiz_id=quiz_id, problem_id=problem.problem_id)
+                result = judge.judge(item)
+                # 对则满分，错则0分
+                item.score = quiz_problem.problem_bonus if result else 0
+                mark += item.score
+                item.save()
+            quiz_session = QuizSession.objects.get(uid=uid, quiz_id=quiz_id)
+            quiz_session.auto_mark = mark
+            quiz_session.save()
+            data = self.get_serializer(quiz_detail, many=True).data
+            return Response(data_wrapper(data=data, success="true"))
+        except Exception as e:
+            print(e.__repr__())
+            return Response(data_wrapper(msg=20001, success="false"))
+
+
+class QuizManualJudge(generics.GenericAPIView):
+    queryset = QuizDetail.objects.all()
+    serializer_class = QuizJudgeSerializer
+
+    def get(self, request):
+        try:
+            quiz_id = request.GET['quiz_id']
+            uid = request.GET['uid']
+            quiz_detail = self.queryset.filter(uid=uid, quiz_id=quiz_id).order_by('item_id')
+            data = self.get_serializer(quiz_detail, many=True).data
+            return Response(data_wrapper(data=data, success="true"))
+        except Exception as e:
+            print(e.__repr__())
+            return Response(data_wrapper(msg=20001, success="false"))
+
+    def post(self, request):
+        namedict = {'uid': 20001, 'quiz_id': 20001, 'judges': 20001}
+        params = get_params_from_post(request, namedict)
+        if params.pop('error'):
+            return Response(data_wrapper(msg=20001, success="false"))
+        try:
+            quiz_detail = self.queryset.filter(uid=params['uid'], quiz_id=params['quiz_id']).order_by('item_id')
+            judges = json.loads(params['judges'])
+            # judges格式：[item_id, score]
+            for judge in judges:
+                item = quiz_detail.get(item_id=judge[0])
+                item.score = float(judge[1])
+                item.save()
+            data = self.get_serializer(quiz_detail, many=True).data
+            return Response(data_wrapper(data=data, success="true"))
+        except Exception as e:
+            print(e.__repr__())
+            return Response(data_wrapper(msg=20001, success="false"))
+
+    def put(self, request):
+        # 公布成绩
+        # 是否计算成绩排名？
+        namedict = {'quiz_id': 20001}
+        params = get_params_from_post(request, namedict)
+        if params.pop('error'):
+            return Response(data_wrapper(msg=20001, success="false"))
+        try:
+            quiz = CoursesQuiz.objects.get(quiz_id=params['quiz_id'])
+            # 计算每个学生总成绩（暂不计算排名）
+            quiz_session = QuizSession.objects.filter(quiz_id=params['quiz_id'])
+            for session in quiz_session:
+                quiz_detail = QuizDetail.objects.filter(uid=session.uid, quiz_id=params['quiz_id'])
+                mark = 0
+                for item in quiz_detail:
+                    mark += item.score
+                session.mark = mark
+                session.save()
+            # 更新考试状态
+            quiz.quiz_state = 3
+            quiz.save()
+            return Response(data_wrapper(success="true"))
+        except Exception as e:
+            print(e.__repr__())
             return Response(data_wrapper(msg=20001, success="false"))

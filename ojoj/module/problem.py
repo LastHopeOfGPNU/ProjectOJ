@@ -130,8 +130,10 @@ class ProblemView(BaseListView):
         if sort:
             if sort.lower() == 'desc':
                 dataset = dataset.order_by('-accept_rate')
+                # dataset = dataset.extra(select={'rate': 'accepted/submit'}).order_by('-rate')
             elif sort.lower() == 'asc':
                 dataset = dataset.order_by('accept_rate')
+                # dataset = dataset.extra(select={'rate': 'accepted/submit'}).order_by('rate')
         if accept_rate:
             if accept_rate == '1':
                 rate_range = (0.8, 1)
