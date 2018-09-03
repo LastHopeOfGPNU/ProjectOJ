@@ -200,3 +200,29 @@ class ExamProblemView(generics.GenericAPIView):
             return Response(data_wrapper(success="true"))
         except:
             return Response(data_wrapper(msg=20001, success="false"))
+
+
+class CourseClassView(generics.GenericAPIView):
+    queryset = CoursesClass.objects.all()
+    serializer_class = CourseSerializer
+
+    def post(self, request):
+        namedict = {'courses_id': 20001, 'class_id': 20001}
+        params = get_params_from_post(request, namedict)
+        if params.pop('error'):
+            return Response(data_wrapper(msg=20001, success="false"))
+        try:
+            class_ids = json.loads(params['class_id'])
+            courses_id = Courses.objects.get(courses_id=params['courses_id'])
+            for class_id in class_ids:
+                class_id = Class.objects.get(class_id=class_id)
+                courses_class = self.queryset.filter(courses_id=courses_id, class_id=class_id)
+                if courses_class.exists():
+                    continue
+                else:
+                    courses_class = self.queryset.create(courses_id=courses_id, class_id=class_id)
+                    courses_class.save()
+            data = self.get_serializer(courses_id).data
+            return Response(data_wrapper(data=data, success="true"))
+        except:
+            return Response(data_wrapper(msg=20001, success="false"))

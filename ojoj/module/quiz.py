@@ -97,12 +97,19 @@ class QuizView(generics.GenericAPIView):
 
     def get(self, request):
         try:
-            courses_id = request.GET['courses_id']
-            quiz = self.queryset.filter(courses_id=courses_id).order_by('-quiz_date')
+            courses_id = request.GET.get('courses_id', None)
+            uid = request.GET['uid']
+            user = Users.objects.get(uid=uid)
+            if not courses_id:
+                cc = CoursesClass.objects.filter(class_id=user.class_id)
+                courses = Courses.objects.filter(courses_id__in=cc.values_list('courses_id', flat=True)).order_by('courses_id')
+                quiz = self.queryset.filter(courses_id__in=courses.values_list('courses_id', flat=True)).order_by('-quiz_date')
+            else:
+                quiz = self.queryset.filter(courses_id=courses_id).order_by('-quiz_date')
+            data = self.serializer_class(quiz, many=True).data
+            return Response(data_wrapper(data=data, success="true"))
         except:
             return Response(data_wrapper(msg=20001, success="false"))
-        data = self.serializer_class(quiz, many=True).data
-        return Response(data_wrapper(data=data, success="true"))
 
     def get_problem_info(self, problem):
         return QuizProblemSerializer(problem).data
@@ -193,12 +200,13 @@ class QuizDetailView(generics.GenericAPIView):
             return Response(data_wrapper(msg=20001, success="false"))
 
     def post(self, request):
-        namedict = {'uid': 20001, 'quiz_id': 20001, 'answers': 20001, 'submit': 20001}
-        params = get_params_from_post(request, namedict)
-        if params.pop('error'):
-            return Response(data_wrapper(msg=20001, success="false"))
+        #namedict = {'uid': 20001, 'quiz_id': 20001, 'answers': 20001, 'submit': 20001}
+        #params = get_params_from_post(request, namedict)
+        #if params.pop('error'):
+        #    return Response(data_wrapper(msg=20001, success="false"))
         try:
-            answers = json.loads(params.pop('answers'))
+            params = json.loads(request.POST)
+            answers = params['answers']  # json.loads(params.pop('answers'))
             # 判断考试是否已结束 或 学生已提交试卷
             # 考试状态 (0.未进行 1.进行中 2.等待批阅 3.已公布成绩)
             user = Users.objects.get(uid=params['uid'])
@@ -224,7 +232,7 @@ class QuizDetailView(generics.GenericAPIView):
                 ans = answer[2]
                 record = self.queryset.filter(item_id=item_id, problem_id=problem_id)
                 if not record.exists():
-                    record = self.queryset.create(uid=user.uid, quiz_id=quiz.quiz_id, problem_id=problem_id)
+                    record = self.queryset.create(uid=user.uid, quiz_id=quiz.quiz_id, problem_id=problem_id, item_id=item_id)
                     record.save()
                 else:
                     record = record[0]

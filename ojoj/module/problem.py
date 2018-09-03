@@ -173,7 +173,8 @@ class ProblemDetailView(generics.GenericAPIView):
                     solu_ser = SolutionSerializer(solution)
                     solu_data = solu_ser.data
                     if problem.problem_type == 1 or problem.problem_type == 2 or problem.problem_type == 4 or problem.problem_type == 5:
-                        solu_data.update({'sample_output': problem.sample_output})
+                        sample_output = json.loads(problem.sample_output) if problem.problem_type == 1 else problem.sample_output
+                        solu_data.update({'sample_output': sample_output})
                     data.update(solu_data)
                 elif user.identity == '3':
                     data.update({'hint': problem.hint, 'sample_output': problem.sample_output})

@@ -385,10 +385,34 @@ class QuizSerializer(serializers.ModelSerializer):
 
 
 class CourseSerializer(serializers.ModelSerializer):
+    class_id = serializers.SerializerMethodField()
+    class_name = serializers.SerializerMethodField()
+
+    def get_class_id(self, obj):
+        class_ids = []
+        courses_class = CoursesClass.objects.filter(courses_id=obj)
+        for item in courses_class:
+            try:
+                if item.class_id.class_id not in class_ids:
+                    class_ids.append(item.class_id.class_id)
+            except:
+                continue
+        return class_ids
+
+    def get_class_name(self, obj):
+        class_names = []
+        courses_class = CoursesClass.objects.filter(courses_id=obj)
+        for item in courses_class:
+            try:
+                if item.class_id.class_name not in class_names:
+                    class_names.append(item.class_id.class_name)
+            except:
+                continue
+        return class_names
 
     class Meta:
         model = Courses
-        fields = ('courses_id', 'courses_name', 'grade', 'term')
+        fields = ('courses_id', 'courses_name', 'grade', 'term', 'class_id', 'class_name')
 
 
 class ContestRankSerializer(serializers.ModelSerializer):
@@ -439,6 +463,16 @@ class CourseExamSerializer(serializers.ModelSerializer):
 
 
 class QuizDetailSerializer(serializers.ModelSerializer):
+    user_answer = serializers.SerializerMethodField()
+
+    def get_user_answer(self, obj):
+        #problem = Problem.objects.get(problem_id=obj.problem_id)
+        #if problem.problem_type == 1:
+        #    return
+        try:
+            return json.loads(obj.user_answer)
+        except:
+            return obj.user_answer
 
     class Meta:
         model = QuizDetail
