@@ -1,5 +1,6 @@
 from rest_framework import generics
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from django.utils import timezone
 import datetime, json
 from ..models import *
@@ -72,7 +73,8 @@ def get_exam_data(exam, uid):
     exam_data.update({'solved_count': count})
     return exam_data
 
-class CourseExamView(generics.GenericAPIView):
+
+class CourseExamView(APIView):
     queryset = CoursesExam.objects.all()
     serializer_class = CourseExamSerializer
 
@@ -128,7 +130,6 @@ class CourseExamView(generics.GenericAPIView):
         except:
             return Response(data_wrapper(msg=20001, success="false"))
 
-
     def get(self, request):
         try:
             uid = request.GET['uid']
@@ -142,7 +143,8 @@ class CourseExamView(generics.GenericAPIView):
                 exam_data = get_exam_data(exam, user.uid)
                 data.append(exam_data)
             return Response(data_wrapper(data=data, success="true"))
-        except:
+        except Exception as e:
+            print(e.__repr__())
             return Response(data_wrapper(msg=20001, success="false"))
 
 
@@ -224,5 +226,40 @@ class CourseClassView(generics.GenericAPIView):
                     courses_class.save()
             data = self.get_serializer(courses_id).data
             return Response(data_wrapper(data=data, success="true"))
+        except:
+            return Response(data_wrapper(msg=20001, success="false"))
+
+
+class ExamTeacherView(generics.GenericAPIView):
+    queryset = CoursesExam.objects.all()
+    serializer_class = CourseExamSerializer
+
+    # 测验结果接口
+    def get(self, request):
+        try:
+            exam_id = request.GET['exam_id']
+            class_id = request.GET['class_id']
+            exam = self.queryset.get(exam_id=exam_id)
+            users = Users.objects.filter(class_id=class_id).order_by('uid')
+            exam_problem = CoursesExamProblem.objects.filter(exam_id=exam.exam_id)
+            problem_count = exam_problem.count()
+            pass_student_count = 0
+            student_list = []
+            for user in users:
+                finished = Solution.objects.filter(uid=user.uid,
+                                        problem_id__in=exam_problem.values_list('problem_id', flat=True),
+                                        result=4).values_list('problem_id', flat=True).distinct().count()
+                submit = Solution.objects.filter(uid=user.uid,
+                                        problem_id__in=exam_problem.values_list('problem_id', flat=True)).values_list('problem_id', flat=True).distinct().count()
+                student = {'code': user.code, 'nick': user.nick, 'accepted': finished, 'submit': submit}
+                if finished == problem_count:
+                    pass_student_count += 1
+                    student['finished'] = 1
+                else:
+                    student['finished'] = 0
+                student_list.append(student)
+            exam_data = self.get_serializer(exam).data
+            exam_data.update({'pass_student_count': pass_student_count, 'student_list': student_list})
+            return Response(data_wrapper(data=exam_data, success="true"))
         except:
             return Response(data_wrapper(msg=20001, success="false"))

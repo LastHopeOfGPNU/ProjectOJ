@@ -431,13 +431,24 @@ class ContestRankSerializer(serializers.ModelSerializer):
 
 
 class CourseExamSerializer(serializers.ModelSerializer):
-    pass_student_count = serializers.SerializerMethodField()
+    #pass_student_count = serializers.SerializerMethodField()
     problem_count = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     student_count = serializers.SerializerMethodField()
 
     def get_pass_student_count(self, obj):
-        return Solution.objects.filter(exam_id=obj.exam_id, problem_belong=1, result=4).count()
+        course = obj.courses_id
+        users = Users.objects.filter(class_id__in=CoursesClass.objects.filter(courses_id=course).values_list('class_id', flat=True))
+        exam_problem = CoursesExamProblem.objects.filter(exam_id=obj.exam_id)
+        problem_count = exam_problem.count()
+        pass_student_count = 0
+        for user in users:
+            finished = Solution.objects.filter(uid=user.uid,
+                                    problem_id__in=exam_problem.values_list('problem_id', flat=True),
+                                    result=4).values_list('problem_id', flat=True).distinct().count()
+            if finished == problem_count:
+                pass_student_count += 1
+        return pass_student_count
 
     def get_problem_count(self, obj):
         return CoursesExamProblem.objects.filter(exam_id=obj.exam_id).count()
@@ -451,14 +462,13 @@ class CourseExamSerializer(serializers.ModelSerializer):
 
     def get_student_count(self, obj):
         course = obj.courses_id
-        cls = Class.objects.filter(class_id__in=CoursesClass.objects.filter(courses_id=course).values_list('class_id', flat=True))
-        student_count = 0
-        for i in cls: student_count += i.studentnum
-        return student_count
+        students = Users.objects.filter(class_id__in=CoursesClass.objects.filter(courses_id=course).values_list('class_id', flat=True))
+
+        return students.count()
 
     class Meta:
         model = CoursesExam
-        fields = ('exam_id', 'exam_name', 'create_time', 'stop_time', 'pass_student_count',
+        fields = ('exam_id', 'exam_name', 'create_time', 'stop_time', #'pass_student_count',
                   'problem_count', 'status', 'student_count')
 
 
